@@ -1,0 +1,77 @@
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Poppins,sans-serif;
+}
+
+body{
+background:url("../images/cosmic-bg.png") center/cover fixed;
+color:white;
+}
+
+.navbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:20px 40px;
+background:rgba(0,0,0,.45);
+backdrop-filter:blur(10px);
+}
+
+.navbar a{
+color:white;
+text-decoration:none;
+}
+
+.container{
+width:90%;
+margin:40px auto;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+gap:30px;
+}
+
+.card{
+
+background:rgba(20,20,40,.75);
+
+padding:25px;
+
+border-radius:20px;
+
+backdrop-filter:blur(12px);
+
+}
+
+.card h2{
+
+color:#ff3ea5;
+
+margin-bottom:15px;
+
+}
+
+.card p{
+
+margin:8px 0;
+
+}
+
+button{
+
+margin-top:15px;
+
+padding:12px 25px;
+
+background:#ff3ea5;
+
+border:none;
+
+color:white;
+
+border-radius:30px;
+
+cursor:pointer;
+
+}

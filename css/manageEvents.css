@@ -1,0 +1,379 @@
+/*=====================================================
+                GOOGLE FONT
+=====================================================*/
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    background:linear-gradient(135deg,#070B17,#111827,#1B133A);
+    color:#fff;
+    min-height:100vh;
+}
+
+/*=====================================================
+                    NAVBAR
+=====================================================*/
+
+.navbar{
+
+    width:90%;
+
+    margin:25px auto;
+
+    padding:18px 40px;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    background:rgba(255,255,255,.08);
+
+    backdrop-filter:blur(15px);
+
+    border:1px solid rgba(255,255,255,.1);
+
+    border-radius:18px;
+
+}
+
+.logo h2{
+
+    color:#FFD369;
+
+    font-size:32px;
+
+}
+
+.nav-links{
+
+    display:flex;
+
+    gap:30px;
+
+}
+
+.nav-links a{
+
+    color:white;
+
+    text-decoration:none;
+
+    transition:.3s;
+
+    font-weight:500;
+
+}
+
+.nav-links a:hover{
+
+    color:#FFD369;
+
+}
+
+/*=====================================================
+                    HEADER
+=====================================================*/
+
+.header{
+
+    width:90%;
+
+    margin:40px auto;
+
+    text-align:center;
+
+}
+
+.header h1{
+
+    font-size:42px;
+
+    color:#FFD369;
+
+    margin-bottom:10px;
+
+}
+
+.header p{
+
+    color:#CCCCCC;
+
+    font-size:18px;
+
+}
+
+/*=====================================================
+                SEARCH BAR
+=====================================================*/
+
+.search-section{
+
+    width:90%;
+
+    margin:40px auto;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    gap:20px;
+
+}
+
+.search-section input{
+
+    flex:1;
+
+    padding:15px 20px;
+
+    border:none;
+
+    outline:none;
+
+    border-radius:40px;
+
+    background:#161F32;
+
+    color:white;
+
+    font-size:16px;
+
+}
+
+.add-btn{
+
+    background:#8E3DFF;
+
+    color:white;
+
+    text-decoration:none;
+
+    padding:15px 30px;
+
+    border-radius:40px;
+
+    transition:.3s;
+
+    font-weight:600;
+
+}
+
+.add-btn:hover{
+
+    background:#A855F7;
+
+}
+
+/*=====================================================
+                EVENT GRID
+=====================================================*/
+
+.event-grid{
+
+    width:90%;
+
+    margin:50px auto;
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+
+    gap:30px;
+
+}
+
+/*=====================================================
+                EVENT CARD
+=====================================================*/
+
+.event-card{
+
+    background:rgba(255,255,255,.08);
+
+    backdrop-filter:blur(15px);
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+    transition:.35s;
+
+    border:1px solid rgba(255,255,255,.1);
+
+}
+
+.event-card:hover{
+
+    transform:translateY(-10px);
+
+    box-shadow:0 20px 40px rgba(0,0,0,.35);
+
+}
+
+/*=====================================================
+                IMAGE
+=====================================================*/
+
+.event-card img{
+
+    width:100%;
+
+    height:220px;
+
+    object-fit:cover;
+
+}
+
+/*=====================================================
+                CONTENT
+=====================================================*/
+
+.event-content{
+
+    padding:25px;
+
+}
+
+.badge{
+
+    display:inline-block;
+
+    background:#8E3DFF;
+
+    color:white;
+
+    padding:6px 16px;
+
+    border-radius:20px;
+
+    margin-bottom:15px;
+
+    font-size:13px;
+
+}
+
+.event-content h3{
+
+    margin-bottom:15px;
+
+    font-size:24px;
+
+}
+
+.event-content p{
+
+    color:#D8D8D8;
+
+    margin-bottom:10px;
+
+}
+
+/*=====================================================
+                BUTTONS
+=====================================================*/
+
+.buttons{
+
+    display:flex;
+
+    gap:15px;
+
+    margin-top:25px;
+
+}
+
+.edit{
+
+    flex:1;
+
+    text-align:center;
+
+    text-decoration:none;
+
+    background:#8E3DFF;
+
+    color:white;
+
+    padding:12px;
+
+    border-radius:30px;
+
+    transition:.3s;
+
+}
+
+.edit:hover{
+
+    background:#A855F7;
+
+}
+
+.delete{
+
+    flex:1;
+
+    text-align:center;
+
+    text-decoration:none;
+
+    background:#FF4D6D;
+
+    color:white;
+
+    padding:12px;
+
+    border-radius:30px;
+
+    transition:.3s;
+
+}
+
+.delete:hover{
+
+    background:#E63956;
+
+}
+
+/*=====================================================
+                RESPONSIVE
+=====================================================*/
+
+@media(max-width:900px){
+
+.search-section{
+
+    flex-direction:column;
+
+}
+
+.add-btn{
+
+    text-align:center;
+
+}
+
+.navbar{
+
+    flex-direction:column;
+
+    gap:20px;
+
+}
+
+.nav-links{
+
+    flex-wrap:wrap;
+
+    justify-content:center;
+
+}
+
+}

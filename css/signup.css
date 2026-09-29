@@ -1,0 +1,132 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Poppins',sans-serif;
+    background:url("../images/image.png") no-repeat center center;
+    background-size:cover;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+
+.signup-box{
+
+    width:420px;
+
+    background:rgba(20,20,40,.75);
+
+    border:1px solid rgba(255,255,255,.2);
+
+    border-radius:20px;
+
+    padding:35px;
+
+    backdrop-filter:blur(10px);
+
+    color:white;
+
+    box-shadow:0 0 20px rgba(255,0,180,.3);
+
+}
+
+.signup-box h2{
+
+    text-align:center;
+
+    margin-bottom:10px;
+
+    color:#ff3ea5;
+
+}
+
+.signup-box p{
+
+    text-align:center;
+
+    margin-bottom:25px;
+
+    color:#ddd;
+
+}
+
+.input-box{
+
+    margin-bottom:18px;
+
+}
+
+.input-box label{
+
+    display:block;
+
+    margin-bottom:6px;
+
+}
+
+.input-box input,
+.input-box select{
+
+    width:100%;
+
+    padding:12px;
+
+    border:none;
+
+    border-radius:8px;
+
+    outline:none;
+
+    font-size:15px;
+
+}
+
+button{
+
+    width:100%;
+
+    padding:14px;
+
+    border:none;
+
+    border-radius:30px;
+
+    background:#ff3ea5;
+
+    color:white;
+
+    font-size:17px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    margin-top:10px;
+
+}
+
+button:hover{
+
+    background:#ff1f96;
+
+}
+
+.login-text{
+
+    margin-top:20px;
+
+}
+
+.login-text a{
+
+   color:#d4ce26;
+
+    text-decoration:none;
+
+    font-weight:bold;
+
+}

@@ -1,0 +1,57 @@
+body{
+
+font-family:Poppins,sans-serif;
+
+background:#f5f7fb;
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+height:100vh;
+
+}
+
+.success-box{
+
+background:white;
+
+padding:40px;
+
+border-radius:15px;
+
+box-shadow:0 10px 25px rgba(0,0,0,.15);
+
+text-align:center;
+
+width:450px;
+
+}
+
+.success-box h1{
+
+color:#28a745;
+
+}
+
+.success-box a{
+
+display:inline-block;
+
+margin-top:20px;
+
+padding:12px 25px;
+
+background:#5a4bff;
+
+color:white;
+
+text-decoration:none;
+
+border-radius:8px;
+
+font-weight:600;
+
+}

@@ -1,0 +1,547 @@
+/*==========================================
+        EVENT DETAILS PAGE
+==========================================*/
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+
+    background:#070B17;
+
+    color:#fff;
+
+    overflow-x:hidden;
+
+}
+
+/*==========================================
+            BANNER
+==========================================*/
+
+.banner{
+
+    width:100%;
+
+    height:420px;
+
+    overflow:hidden;
+
+    position:relative;
+
+}
+
+.banner img{
+
+    width:100%;
+
+    height:100%;
+
+    object-fit:cover;
+
+}
+
+.banner::after{
+
+    content:"";
+
+    position:absolute;
+
+    left:0;
+
+    right:0;
+
+    top:0;
+
+    bottom:0;
+
+    background:linear-gradient(to top,#070B17,transparent);
+
+}
+
+/*==========================================
+            CONTAINER
+==========================================*/
+
+.container{
+
+    width:88%;
+
+    margin:auto;
+
+    margin-top:-70px;
+
+    position:relative;
+
+    z-index:10;
+
+}
+
+/*==========================================
+          EVENT HEADER
+==========================================*/
+
+.event-header{
+
+    text-align:center;
+
+    margin-bottom:45px;
+
+}
+
+.category{
+
+    display:inline-block;
+
+    background:#8E3DFF;
+
+    padding:8px 20px;
+
+    border-radius:30px;
+
+    font-size:15px;
+
+    margin-bottom:20px;
+
+}
+
+.event-header h1{
+
+    font-size:48px;
+
+    color:#FFD369;
+
+    margin-bottom:10px;
+
+}
+
+.event-header h3{
+
+    color:#CFCFCF;
+
+    font-weight:400;
+
+    font-size:22px;
+
+}
+
+/*==========================================
+          INFO GRID
+==========================================*/
+
+.info-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+
+    gap:25px;
+
+    margin:50px 0;
+
+}
+
+.info-card{
+
+    background:rgba(255,255,255,.05);
+
+    border:1px solid rgba(255,255,255,.08);
+
+    border-radius:18px;
+
+    padding:25px;
+
+    text-align:center;
+
+    transition:.35s;
+
+    backdrop-filter:blur(10px);
+
+}
+
+.info-card:hover{
+
+    transform:translateY(-8px);
+
+    background:#8E3DFF;
+
+}
+
+.info-card h4{
+
+    color:#FFD369;
+
+    margin-bottom:12px;
+
+}
+
+.info-card p{
+
+    color:#ECECEC;
+
+    font-size:17px;
+
+}
+
+.description{
+    white-space: pre-wrap;
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.8;
+}
+
+/*==========================================
+          COMMON SECTION
+==========================================*/
+
+.section{
+
+    background:#111827;
+
+    border-radius:20px;
+
+    padding:35px;
+
+    margin-bottom:35px;
+
+    box-shadow:0 15px 30px rgba(0,0,0,.30);
+
+}
+
+.section h2{
+
+    color:#FFD369;
+
+    margin-bottom:20px;
+
+    font-size:32px;
+
+}
+
+.section p{
+
+    color:#DDDDDD;
+
+    line-height:1.9;
+
+    font-size:17px;
+
+}
+/*==========================================
+            PRIZE SECTION
+==========================================*/
+
+.prizes{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+
+    gap:25px;
+
+    margin-top:25px;
+
+}
+
+.prize-card{
+
+    background:linear-gradient(135deg,#6A11CB,#2575FC);
+
+    border-radius:18px;
+
+    text-align:center;
+
+    padding:35px 25px;
+
+    transition:.4s;
+
+    color:white;
+
+    font-size:45px;
+
+    cursor:pointer;
+
+    box-shadow:0 15px 25px rgba(0,0,0,.25);
+
+}
+
+.prize-card:hover{
+
+    transform:translateY(-10px) scale(1.03);
+
+}
+
+.prize-card h3{
+
+    margin-top:15px;
+
+    margin-bottom:10px;
+
+    font-size:24px;
+
+    color:#FFD369;
+
+}
+
+.prize-card p{
+
+    font-size:18px;
+
+    color:#fff;
+
+}
+
+
+/*==========================================
+        COORDINATOR
+==========================================*/
+
+.coordinator{
+
+    background:#1A2238;
+
+    padding:30px;
+
+    border-radius:18px;
+
+    border-left:5px solid #FFD369;
+
+}
+
+.coordinator h3{
+
+    font-size:28px;
+
+    color:#FFD369;
+
+    margin-bottom:15px;
+
+}
+
+.coordinator p{
+
+    font-size:18px;
+
+    color:#E5E5E5;
+
+    margin-bottom:10px;
+
+}
+
+
+/*==========================================
+        REGISTER BUTTON
+==========================================*/
+
+.register-section{
+
+    text-align:center;
+
+    margin:60px 0;
+
+}
+
+.register-btn{
+
+    display:inline-block;
+
+    text-decoration:none;
+
+    background:#FFD369;
+
+    color:#111;
+
+    padding:18px 50px;
+
+    border-radius:40px;
+
+    font-size:20px;
+
+    font-weight:600;
+
+    transition:.35s;
+
+}
+
+.register-btn:hover{
+
+    background:#8E3DFF;
+
+    color:white;
+
+    transform:translateY(-5px);
+
+    box-shadow:0 12px 25px rgba(142,61,255,.45);
+
+}
+
+
+/*==========================================
+        SCROLLBAR
+==========================================*/
+
+::-webkit-scrollbar{
+
+    width:10px;
+
+}
+
+::-webkit-scrollbar-track{
+
+    background:#070B17;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+    background:#8E3DFF;
+
+    border-radius:20px;
+
+}
+
+::-webkit-scrollbar-thumb:hover{
+
+    background:#FFD369;
+
+}
+
+
+/*==========================================
+        RESPONSIVE
+==========================================*/
+
+@media(max-width:992px){
+
+.banner{
+
+    height:300px;
+
+}
+
+.event-header h1{
+
+    font-size:38px;
+
+}
+
+.event-header h3{
+
+    font-size:18px;
+
+}
+
+.section{
+
+    padding:25px;
+
+}
+
+.section h2{
+
+    font-size:28px;
+
+}
+
+}
+
+
+@media(max-width:768px){
+
+.container{
+
+    width:94%;
+
+}
+
+.banner{
+
+    height:240px;
+
+}
+
+.event-header h1{
+
+    font-size:30px;
+
+}
+
+.event-header h3{
+
+    font-size:16px;
+
+}
+
+.info-grid{
+
+    grid-template-columns:1fr;
+
+}
+
+.prizes{
+
+    grid-template-columns:1fr;
+
+}
+
+.register-btn{
+
+    width:100%;
+
+    padding:18px;
+
+    font-size:18px;
+
+}
+
+}
+
+
+@media(max-width:480px){
+
+.banner{
+
+    height:200px;
+
+}
+
+.category{
+
+    font-size:13px;
+
+}
+
+.event-header h1{
+
+    font-size:24px;
+
+}
+
+.section h2{
+
+    font-size:24px;
+
+}
+
+.section p{
+
+    font-size:15px;
+
+}
+
+.info-card{
+
+    padding:20px;
+
+}
+
+.coordinator h3{
+
+    font-size:22px;
+
+}
+
+}

@@ -1,0 +1,346 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #0b1220;
+    color: white;
+    min-height: 100vh;
+    padding-bottom: 50px;
+}
+
+
+/* ===============================
+   MAIN CONTAINER
+   =============================== */
+
+.container {
+    width: 90%;
+    max-width: 1050px;
+    margin: 40px auto;
+}
+
+
+/* ===============================
+   PAGE HEADER
+   =============================== */
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.page-header h1 {
+    color: #ff3fa4;
+    font-size: 36px;
+    margin-bottom: 6px;
+}
+
+.page-header p {
+    color: #aeb9ca;
+    font-size: 15px;
+}
+
+.back-btn {
+    text-decoration: none;
+    color: white;
+    background: #293750;
+    padding: 11px 20px;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.back-btn:hover {
+    background: #3a4b66;
+}
+
+
+/* ===============================
+   FORM CARD
+   =============================== */
+
+.form-card {
+    background: #172236;
+    border: 1px solid #2d3c55;
+    border-radius: 18px;
+    padding: 32px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+}
+
+
+/* ===============================
+   SECTIONS
+   =============================== */
+
+.section {
+    margin-bottom: 35px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid #30405a;
+}
+
+.section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.section h2 {
+    color: #c77cff;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+
+/* ===============================
+   LABELS
+   =============================== */
+
+label {
+    display: block;
+    margin-top: 18px;
+    margin-bottom: 8px;
+    color: #dce4ef;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+
+/* ===============================
+   INPUTS
+   =============================== */
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 13px 14px;
+    border-radius: 8px;
+    border: 1px solid #3b4a62;
+    background: #202c3d;
+    color: white;
+    outline: none;
+    font-size: 15px;
+    transition: 0.3s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #b536ff;
+    box-shadow: 0 0 0 2px rgba(181, 54, 255, 0.12);
+}
+
+textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+select {
+    cursor: pointer;
+}
+
+
+/* ===============================
+   TWO COLUMN GRID
+   =============================== */
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+
+/* ===============================
+   PAYMENT
+   =============================== */
+
+.payment-box {
+    background: #202c3d;
+    border: 1px solid #394a63;
+    border-radius: 12px;
+    padding: 22px;
+    margin-top: 20px;
+}
+
+.payment-box h3 {
+    color: #ffbf32;
+    margin-bottom: 15px;
+    font-size: 20px;
+}
+
+.current-qr {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #394a63;
+}
+
+.current-qr p {
+    color: #c77cff;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.current-qr img {
+    width: 250px;
+    height: 250px;
+    object-fit: contain;
+    display: block;
+    background: white;
+    padding: 10px;
+    border-radius: 12px;
+    border: 2px solid #9b35ff;
+}
+
+
+/* ===============================
+   BUTTON ROW
+   =============================== */
+
+.button-row {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.save-btn {
+    flex: 1;
+    border: none;
+    padding: 15px;
+    border-radius: 10px;
+    background: linear-gradient(
+        90deg,
+        #9b35ff,
+        #d021c8
+    );
+    color: white;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(180, 40, 255, 0.3);
+}
+
+.cancel-btn {
+    padding: 15px 28px;
+    border-radius: 10px;
+    background: #293750;
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+
+.cancel-btn:hover {
+    background: #3b4b65;
+}
+
+
+/* ===============================
+   ACCESS DENIED
+   =============================== */
+
+.access-denied {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+}
+
+.denied-card {
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+    background: #172236;
+    border: 1px solid #2d3c55;
+    border-radius: 18px;
+    padding: 45px 30px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
+}
+
+.denied-icon {
+    font-size: 55px;
+    margin-bottom: 15px;
+}
+
+.denied-card h1 {
+    color: #ff4f81;
+    margin-bottom: 15px;
+}
+
+.denied-card p {
+    color: #c5cfdd;
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+.denied-card a {
+    display: inline-block;
+    margin-top: 22px;
+    padding: 12px 25px;
+    background: linear-gradient(
+        90deg,
+        #9b35ff,
+        #d021c8
+    );
+    color: white;
+    text-decoration: none;
+    border-radius: 9px;
+    font-weight: bold;
+}
+
+
+/* ===============================
+   RESPONSIVE
+   =============================== */
+
+@media (max-width: 750px) {
+
+    .container {
+        width: 94%;
+        margin: 25px auto;
+    }
+
+    .form-card {
+        padding: 20px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .page-header h1 {
+        font-size: 30px;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+
+    .button-row {
+        flex-direction: column;
+    }
+
+    .cancel-btn {
+        padding: 15px;
+    }
+
+    .current-qr img {
+        width: 200px;
+        height: 200px;
+    }
+}

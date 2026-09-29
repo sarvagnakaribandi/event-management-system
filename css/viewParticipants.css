@@ -1,0 +1,1160 @@
+<%@ page language="java"
+    contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+
+<%@ page import="java.sql.*" %>
+
+<%
+/* =====================================================
+   ORGANIZER LOGIN CHECK
+   ===================================================== */
+
+if(session.getAttribute("userId") == null){
+
+    response.sendRedirect("login.jsp");
+    return;
+}
+
+
+String role =
+    (String)session.getAttribute("role");
+
+
+if(role == null ||
+   !"Organizer".equalsIgnoreCase(role)){
+
+    response.sendRedirect("login.jsp");
+    return;
+}
+
+
+/* =====================================================
+   GET LOGGED-IN ORGANIZER
+   ===================================================== */
+
+Object userObject =
+    session.getAttribute("userId");
+
+
+int organizerId;
+
+try{
+
+    organizerId =
+        Integer.parseInt(
+            userObject.toString()
+        );
+
+}
+catch(Exception e){
+
+    response.sendRedirect("login.jsp");
+    return;
+}
+
+
+/* =====================================================
+   GET EVENT ID
+   ===================================================== */
+
+String eventId =
+    request.getParameter("id");
+
+
+if(eventId == null ||
+   eventId.trim().equals("")){
+
+    response.sendRedirect("manageEvents.jsp");
+    return;
+}
+
+
+int eventIdInt;
+
+try{
+
+    eventIdInt =
+        Integer.parseInt(eventId);
+
+}
+catch(Exception e){
+
+    response.sendRedirect("manageEvents.jsp");
+    return;
+}
+
+
+Connection conn = null;
+
+PreparedStatement eventPs = null;
+PreparedStatement participantPs = null;
+
+ResultSet eventRs = null;
+ResultSet participantRs = null;
+
+
+try{
+
+    Class.forName(
+        "com.mysql.cj.jdbc.Driver"
+    );
+
+
+    conn = DriverManager.getConnection(
+
+        "jdbc:mysql://localhost:3306/eventsphere",
+
+        "root",
+
+        ""
+    );
+
+
+    /* =================================================
+       STEP 1
+       CHECK THAT EVENT BELONGS TO THIS ORGANIZER
+       ================================================= */
+
+    eventPs =
+        conn.prepareStatement(
+
+            "SELECT event_id, event_name " +
+            "FROM events " +
+            "WHERE event_id=? " +
+            "AND organizer_id=?"
+
+        );
+
+
+    eventPs.setInt(
+        1,
+        eventIdInt
+    );
+
+
+    eventPs.setInt(
+        2,
+        organizerId
+    );
+
+
+    eventRs =
+        eventPs.executeQuery();
+
+
+    /* =================================================
+       EVENT DOES NOT BELONG TO ORGANIZER
+       ================================================= */
+
+    if(!eventRs.next()){
+
+%>
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>
+    Access Denied
+</title>
+
+<style>
+
+body{
+
+    margin:0;
+
+    min-height:100vh;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    background:#0b1220;
+
+    color:white;
+
+    font-family:Arial,sans-serif;
+}
+
+
+.box{
+
+    width:90%;
+
+    max-width:500px;
+
+    background:#18243a;
+
+    border:1px solid #34425c;
+
+    border-radius:18px;
+
+    padding:40px;
+
+    text-align:center;
+}
+
+
+h1{
+
+    color:#ff6178;
+}
+
+
+p{
+
+    color:#cbd5e1;
+
+    line-height:1.6;
+}
+
+
+a{
+
+    display:inline-block;
+
+    margin-top:20px;
+
+    padding:12px 25px;
+
+    border-radius:10px;
+
+    background:#7138ff;
+
+    color:white;
+
+    text-decoration:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h1>
+    Access Denied
+</h1>
+
+<p>
+    You can only view participants
+    for events created by you.
+</p>
+
+<a href="manageEvents.jsp">
+    Back to Manage Events
+</a>
+
+</div>
+
+</body>
+
+</html>
+
+<%
+
+        return;
+    }
+
+
+    String eventName =
+        eventRs.getString(
+            "event_name"
+        );
+
+
+    /* =================================================
+       STEP 2
+       GET PARTICIPANTS
+       ================================================= */
+
+    participantPs =
+        conn.prepareStatement(
+
+            "SELECT " +
+
+            "r.registration_id, " +
+            "r.full_name, " +
+            "r.email, " +
+            "r.phone, " +
+            "r.gender, " +
+            "r.team_name, " +
+            "r.team_members, " +
+            "r.registration_date, " +
+            "r.payment_status, " +
+            "r.payment_screenshot " +
+
+            "FROM registrations r " +
+
+            "WHERE r.event_id=? " +
+
+            "ORDER BY r.registration_id DESC"
+
+        );
+
+
+    participantPs.setInt(
+        1,
+        eventIdInt
+    );
+
+
+    participantRs =
+        participantPs.executeQuery();
+
+%>
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>
+    Participants - <%=eventName%>
+</title>
+
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+
+body{
+
+    margin:0;
+
+    background:#0b1220;
+
+    color:white;
+
+    font-family:Arial,sans-serif;
+}
+
+
+.navbar{
+
+    background:#121c2e;
+
+    border-bottom:1px solid #293851;
+
+    padding:18px 5%;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+}
+
+
+.logo{
+
+    font-size:24px;
+
+    font-weight:bold;
+
+    color:#c76cff;
+}
+
+
+.navbar a{
+
+    color:#cbd5e1;
+
+    text-decoration:none;
+
+    margin-left:20px;
+}
+
+
+.container{
+
+    width:94%;
+
+    max-width:1250px;
+
+    margin:35px auto;
+}
+
+
+.header{
+
+    margin-bottom:25px;
+}
+
+
+.header h1{
+
+    font-size:34px;
+
+    margin-bottom:8px;
+}
+
+
+.header p{
+
+    color:#9eabc0;
+}
+
+
+.back-btn{
+
+    display:inline-block;
+
+    margin-bottom:20px;
+
+    color:#00eaff;
+
+    text-decoration:none;
+
+}
+
+
+.table-container{
+
+    overflow-x:auto;
+
+    background:#18243a;
+
+    border:1px solid #34425c;
+
+    border-radius:18px;
+}
+
+
+table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+    min-width:1000px;
+}
+
+
+th{
+
+    background:#202f47;
+
+    color:#cbd5e1;
+
+    padding:16px;
+
+    text-align:left;
+
+    font-size:14px;
+}
+
+
+td{
+
+    padding:16px;
+
+    border-top:1px solid #2d3c54;
+
+    color:#e5e7eb;
+
+    vertical-align:middle;
+}
+
+
+tr:hover{
+
+    background:#1d2b42;
+}
+
+
+.name{
+
+    font-weight:bold;
+
+    color:white;
+}
+
+
+.email{
+
+    color:#9eabc0;
+}
+
+
+.status{
+
+    display:inline-block;
+
+    padding:7px 12px;
+
+    border-radius:20px;
+
+    font-size:12px;
+
+    font-weight:bold;
+}
+
+
+.pending{
+
+    background:#493b15;
+
+    color:#ffd34d;
+}
+
+
+.approved{
+
+    background:#123c2c;
+
+    color:#55e79d;
+}
+
+
+.rejected{
+
+    background:#451d28;
+
+    color:#ff7187;
+}
+
+
+.not-required{
+
+    background:#163a4a;
+
+    color:#4fdfff;
+}
+
+
+.payment-actions{
+
+    display:flex;
+
+    gap:8px;
+
+    flex-wrap:wrap;
+}
+
+
+.payment-btn{
+
+    display:inline-block;
+
+    padding:8px 12px;
+
+    border-radius:8px;
+
+    text-decoration:none;
+
+    font-size:12px;
+
+    font-weight:bold;
+}
+
+
+.screenshot-btn{
+
+    background:#24344d;
+
+    color:#00eaff;
+
+    border:1px solid #3b506d;
+}
+
+
+.approve-btn{
+
+    background:#16794d;
+
+    color:white;
+}
+
+
+.reject-btn{
+
+    background:#a52f48;
+
+    color:white;
+}
+
+
+.no-payment{
+
+    color:#78869c;
+
+    font-size:13px;
+}
+
+
+.empty{
+
+    text-align:center;
+
+    padding:60px 20px;
+
+    color:#9eabc0;
+}
+
+
+@media(max-width:700px){
+
+    .navbar{
+
+        flex-direction:column;
+
+        gap:15px;
+    }
+
+
+    .header h1{
+
+        font-size:27px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     NAVBAR
+     ===================================================== -->
+
+<div class="navbar">
+
+
+<div class="logo">
+
+    EventSphere
+
+</div>
+
+
+<div>
+
+<a href="organizerDashboard.jsp">
+    Dashboard
+</a>
+
+
+<a href="manageEvents.jsp">
+    Manage Events
+</a>
+
+
+<a href="logout.jsp">
+    Logout
+</a>
+
+</div>
+
+
+</div>
+
+
+<!-- =====================================================
+     MAIN
+     ===================================================== -->
+
+<div class="container">
+
+
+<a
+    href="manageEvents.jsp"
+    class="back-btn">
+
+    ← Back to Manage Events
+
+</a>
+
+
+<div class="header">
+
+<h1>
+
+    Participants
+
+</h1>
+
+
+<p>
+
+    Event:
+    <strong>
+        <%=eventName%>
+    </strong>
+
+</p>
+
+</div>
+
+
+<div class="table-container">
+
+<table>
+
+
+<thead>
+
+<tr>
+
+<th>
+    Name
+</th>
+
+<th>
+    Email
+</th>
+
+<th>
+    Phone
+</th>
+
+<th>
+    Gender
+</th>
+
+<th>
+    Team
+</th>
+
+<th>
+    Registered On
+</th>
+
+<th>
+    Payment
+</th>
+
+<th>
+    Actions
+</th>
+
+</tr>
+
+</thead>
+
+
+<tbody>
+
+
+<%
+
+boolean hasParticipants = false;
+
+
+while(participantRs.next()){
+
+    hasParticipants = true;
+
+
+    String paymentStatus =
+        participantRs.getString(
+            "payment_status"
+        );
+
+
+    String statusClass =
+        "pending";
+
+
+    if("Approved".equalsIgnoreCase(
+        paymentStatus
+    )){
+
+        statusClass =
+            "approved";
+
+    }
+    else if(
+        "Rejected".equalsIgnoreCase(
+            paymentStatus
+        )
+    ){
+
+        statusClass =
+            "rejected";
+
+    }
+    else if(
+        "Not Required".equalsIgnoreCase(
+            paymentStatus
+        )
+    ){
+
+        statusClass =
+            "not-required";
+
+    }
+
+%>
+
+
+<tr>
+
+
+<!-- NAME -->
+
+<td class="name">
+
+    <%=participantRs.getString(
+        "full_name"
+    )%>
+
+</td>
+
+
+<!-- EMAIL -->
+
+<td class="email">
+
+    <%=participantRs.getString(
+        "email"
+    )%>
+
+</td>
+
+
+<!-- PHONE -->
+
+<td>
+
+    <%=participantRs.getString(
+        "phone"
+    )%>
+
+</td>
+
+
+<!-- GENDER -->
+
+<td>
+
+    <%=participantRs.getString(
+        "gender"
+    )%>
+
+</td>
+
+
+<!-- TEAM -->
+
+<td>
+
+<%
+String team =
+    participantRs.getString(
+        "team_name"
+    );
+
+
+if(team == null ||
+   team.trim().equals("")){
+
+    out.print("Individual");
+
+}
+else{
+
+    out.print(team);
+
+}
+
+%>
+
+</td>
+
+
+<!-- DATE -->
+
+<td>
+
+    <%=participantRs.getTimestamp(
+        "registration_date"
+    )%>
+
+</td>
+
+
+<!-- PAYMENT -->
+
+<td>
+
+<span class="status <%=statusClass%>">
+
+<%
+if("Approved".equalsIgnoreCase(
+    paymentStatus
+)){
+%>
+
+    ✅ Approved
+
+<%
+}
+else if(
+    "Rejected".equalsIgnoreCase(
+        paymentStatus
+    )
+){
+%>
+
+    ❌ Rejected
+
+<%
+}
+else if(
+    "Not Required".equalsIgnoreCase(
+        paymentStatus
+    )
+){
+%>
+
+    🎉 Not Required
+
+<%
+}
+else{
+%>
+
+    🟡 Pending
+
+<%
+}
+%>
+
+</span>
+
+</td>
+
+
+<!-- ACTIONS -->
+
+<td>
+
+
+<%
+String screenshot =
+    participantRs.getString(
+        "payment_screenshot"
+    );
+
+
+if(screenshot != null &&
+   !screenshot.trim().equals("")){
+%>
+
+
+<div class="payment-actions">
+
+
+<a
+    href="images/<%=screenshot%>"
+    target="_blank"
+    class="payment-btn screenshot-btn">
+
+    🧾 View Screenshot
+
+</a>
+
+
+<%
+if("Pending".equalsIgnoreCase(
+    paymentStatus
+)){
+%>
+
+
+<a
+    href="approvePayment.jsp?id=<%=participantRs.getInt("registration_id")%>"
+    class="payment-btn approve-btn"
+    onclick="return confirm('Approve this payment?');">
+
+    ✓ Approve
+
+</a>
+
+
+<a
+    href="rejectPayment.jsp?id=<%=participantRs.getInt("registration_id")%>"
+    class="payment-btn reject-btn"
+    onclick="return confirm('Reject this payment?');">
+
+    ✕ Reject
+
+</a>
+
+
+<%
+}
+%>
+
+
+</div>
+
+
+<%
+}
+else{
+
+    if("Not Required".equalsIgnoreCase(
+        paymentStatus
+    )){
+
+        out.println(
+            "<span class='no-payment'>"
+            + "No payment required"
+            + "</span>"
+        );
+
+    }
+    else{
+
+        out.println(
+            "<span class='no-payment'>"
+            + "No screenshot uploaded"
+            + "</span>"
+        );
+
+    }
+
+}
+
+%>
+
+
+</td>
+
+
+</tr>
+
+
+<%
+}
+%>
+
+
+<%
+if(!hasParticipants){
+%>
+
+<tr>
+
+<td colspan="8"
+    class="empty">
+
+    No participants have registered
+    for this event yet.
+
+</td>
+
+</tr>
+
+<%
+}
+%>
+
+
+</tbody>
+
+</table>
+
+</div>
+
+
+</div>
+
+
+</body>
+
+</html>
+
+
+<%
+
+}
+catch(Exception e){
+
+    out.println(
+        "<h2 style='color:red; padding:30px;'>"
+        + "Error loading participants"
+        + "</h2>"
+    );
+
+    out.println(
+        "<p style='padding:0 30px;'>"
+        + e.getMessage()
+        + "</p>"
+    );
+
+}
+finally{
+
+
+    try{
+
+        if(participantRs != null)
+            participantRs.close();
+
+    }
+    catch(Exception e){}
+
+
+    try{
+
+        if(eventRs != null)
+            eventRs.close();
+
+    }
+    catch(Exception e){}
+
+
+    try{
+
+        if(participantPs != null)
+            participantPs.close();
+
+    }
+    catch(Exception e){}
+
+
+    try{
+
+        if(eventPs != null)
+            eventPs.close();
+
+    }
+    catch(Exception e){}
+
+
+    try{
+
+        if(conn != null)
+            conn.close();
+
+    }
+    catch(Exception e){}
+
+}
+
+%>
