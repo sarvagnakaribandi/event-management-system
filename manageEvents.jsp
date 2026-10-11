@@ -853,8 +853,6 @@ while(rs.next()){
                         🗑 Delete
 
                     </a>
-                    <
-
 
                 </div>
 
@@ -1015,4 +1013,4 @@ finally{
 
 }
 
-%>ok
+%>

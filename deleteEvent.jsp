@@ -75,6 +75,7 @@ catch(Exception e){
 
 Connection conn = null;
 PreparedStatement checkPs = null;
+PreparedStatement deletePaymentsPs = null;
 PreparedStatement deleteRegistrationsPs = null;
 PreparedStatement deleteEventPs = null;
 ResultSet checkRs = null;
@@ -262,7 +263,22 @@ a{
 
 
     /* =================================================
-       DELETE REGISTRATIONS FIRST
+       DELETE PAYMENTS ASSOCIATED WITH REGISTRATIONS FIRST
+       ================================================= */
+
+    String deletePaymentsSql =
+        "DELETE FROM payments WHERE registration_id IN (" +
+        "SELECT registration_id FROM registrations WHERE event_id=?)";
+
+    deletePaymentsPs =
+        conn.prepareStatement(deletePaymentsSql);
+
+    deletePaymentsPs.setInt(1, eventId);
+    deletePaymentsPs.executeUpdate();
+
+
+    /* =================================================
+       DELETE REGISTRATIONS NEXT
        
        registrations.event_id references
        events.event_id
@@ -510,6 +526,12 @@ finally{
     }
     catch(Exception e){}
 
+
+    try{
+        if(deletePaymentsPs != null)
+            deletePaymentsPs.close();
+    }
+    catch(Exception e){}
 
     try{
 

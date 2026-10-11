@@ -165,44 +165,48 @@ try{
 
     eventPs =
         conn.prepareStatement(
-
-            "SELECT event_id, event_name, " +
-            "payment_type, event_fee " +
-            "FROM events " +
-            "WHERE event_id=?"
+            "SELECT event_id, event_name, payment_type, event_fee, available_seats, event_date, registration_deadline " +
+            "FROM events WHERE event_id=?"
         );
-
 
     eventPs.setInt(
         1,
         eventIdInt
     );
 
-
     eventRs =
         eventPs.executeQuery();
 
-
     if(!eventRs.next()){
-
         out.println(
             "<h2>Event not found.</h2>"
         );
-
         return;
     }
 
-
     String eventName =
-        eventRs.getString(
-            "event_name"
-        );
-
+        eventRs.getString("event_name");
 
     String paymentType =
-        eventRs.getString(
-            "payment_type"
-        );
+        eventRs.getString("payment_type");
+
+    int availableSeats = eventRs.getInt("available_seats");
+    java.sql.Date today = new java.sql.Date(System.currentTimeMillis());
+    java.sql.Date eDate = eventRs.getDate("event_date");
+    java.sql.Date eDeadline = eventRs.getDate("registration_deadline");
+
+    if(eDate != null && eDate.before(today)){
+        out.println("<script>alert('This event has already ended.'); history.back();</script>");
+        return;
+    }
+    if(eDeadline != null && eDeadline.before(today)){
+        out.println("<script>alert('Registration deadline has passed.'); history.back();</script>");
+        return;
+    }
+    if(availableSeats <= 0){
+        out.println("<script>alert('Sorry, this event is fully booked (0 seats remaining).'); history.back();</script>");
+        return;
+    }
 
 
     /* =================================================
@@ -603,7 +607,8 @@ a{
 
     insertPs =
         conn.prepareStatement(
-            sql
+            sql,
+            Statement.RETURN_GENERATED_KEYS
         );
 
 

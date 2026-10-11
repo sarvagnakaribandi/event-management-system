@@ -274,7 +274,7 @@ a{
     to approve this payment.
 </p>
 
-<a href="<%=request.getContextPath()%>/participants.jsp?id=<%=eventId%>">
+<a href="<%=request.getContextPath()%>/viewParticipants.jsp?id=<%=eventId%>">
 
     ← Back to Participants
 
@@ -319,7 +319,7 @@ catch(Exception e){
     <%=e.getMessage()%>
 </p>
 
-<a href="<%=request.getContextPath()%>/participants.jsp?id=<%=eventId%>">
+<a href="<%=request.getContextPath()%>/viewParticipants.jsp?id=<%=eventId%>">
 
     ← Back to Participants
 

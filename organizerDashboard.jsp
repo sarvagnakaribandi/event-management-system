@@ -4,71 +4,52 @@ pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*" %>
 
 <%
-if(session.getAttribute("userName")==null){
+if(session.getAttribute("userId") == null || session.getAttribute("role") == null || !"Organizer".equalsIgnoreCase(session.getAttribute("role").toString())){
     response.sendRedirect("login.jsp");
     return;
 }
 
-String userName = session.getAttribute("userName").toString();
+int organizerId = Integer.parseInt(session.getAttribute("userId").toString());
+String userName = session.getAttribute("userName") != null ? session.getAttribute("userName").toString() : "Organizer";
 
 Class.forName("com.mysql.cj.jdbc.Driver");
 
 Connection conn = DriverManager.getConnection(
-"jdbc:mysql://localhost:3306/eventsphere",
-"root",
-""
+    "jdbc:mysql://localhost:3306/eventsphere",
+    "root",
+    ""
 );
 
 /* Total Events */
-
-PreparedStatement ps1 =
-conn.prepareStatement("SELECT COUNT(*) FROM events");
-
+PreparedStatement ps1 = conn.prepareStatement("SELECT COUNT(*) FROM events WHERE organizer_id=?");
+ps1.setInt(1, organizerId);
 ResultSet rs1 = ps1.executeQuery();
+int totalEvents = 0;
+if(rs1.next()) totalEvents = rs1.getInt(1);
 
-int totalEvents=0;
-
-if(rs1.next())
-totalEvents=rs1.getInt(1);
-
-/* Registrations */
-
-PreparedStatement ps2 =
-conn.prepareStatement("SELECT COUNT(*) FROM registrations");
-
-ResultSet rs2=ps2.executeQuery();
-
-int totalRegistrations=0;
-
-if(rs2.next())
-totalRegistrations=rs2.getInt(1);
+/* Registrations for this organizer's events */
+PreparedStatement ps2 = conn.prepareStatement(
+    "SELECT COUNT(*) FROM registrations r INNER JOIN events e ON r.event_id=e.event_id WHERE e.organizer_id=?");
+ps2.setInt(1, organizerId);
+ResultSet rs2 = ps2.executeQuery();
+int totalRegistrations = 0;
+if(rs2.next()) totalRegistrations = rs2.getInt(1);
 
 /* Upcoming */
-
-PreparedStatement ps3=
-conn.prepareStatement(
-"SELECT COUNT(*) FROM events WHERE event_date>=CURDATE()");
-
-ResultSet rs3=ps3.executeQuery();
-
-int upcoming=0;
-
-if(rs3.next())
-upcoming=rs3.getInt(1);
+PreparedStatement ps3 = conn.prepareStatement(
+    "SELECT COUNT(*) FROM events WHERE organizer_id=? AND event_date>=CURDATE()");
+ps3.setInt(1, organizerId);
+ResultSet rs3 = ps3.executeQuery();
+int upcoming = 0;
+if(rs3.next()) upcoming = rs3.getInt(1);
 
 /* Completed */
-
-PreparedStatement ps4=
-conn.prepareStatement(
-"SELECT COUNT(*) FROM events WHERE event_date<CURDATE()");
-
-ResultSet rs4=ps4.executeQuery();
-
-int completed=0;
-
-if(rs4.next())
-completed=rs4.getInt(1);
-
+PreparedStatement ps4 = conn.prepareStatement(
+    "SELECT COUNT(*) FROM events WHERE organizer_id=? AND event_date<CURDATE()");
+ps4.setInt(1, organizerId);
+ResultSet rs4 = ps4.executeQuery();
+int completed = 0;
+if(rs4.next()) completed = rs4.getInt(1);
 %>
 
 <!DOCTYPE html>
@@ -266,11 +247,11 @@ Quick Actions
 
 </a>
 
-<a href="participants.jsp" class="quick-card">
+<a href="manageEvents.jsp" class="quick-card">
 
 <h3>👥</h3>
 
-<p>Participants</p>
+<p>View Attendees</p>
 
 </a>
 
@@ -279,7 +260,8 @@ Quick Actions
 </section>
 <%
 PreparedStatement recentStmt = conn.prepareStatement(
-"SELECT * FROM events ORDER BY event_date DESC LIMIT 6");
+"SELECT * FROM events WHERE organizer_id=? ORDER BY event_date DESC LIMIT 6");
+recentStmt.setInt(1, organizerId);
 
 ResultSet recentRs = recentStmt.executeQuery();
 %>
@@ -294,13 +276,19 @@ ResultSet recentRs = recentStmt.executeQuery();
     <div class="event-grid">
 
 <%
+boolean hasRecent = false;
 while(recentRs.next())
 {
+    hasRecent = true;
+    String rBanner = recentRs.getString("banner_image");
+    if(rBanner == null || rBanner.trim().isEmpty()){
+        rBanner = "image2.png";
+    }
 %>
 
 <div class="event-card">
 
-    <img src="images/<%=recentRs.getString("banner_image")%>">
+    <img src="images/<%=rBanner%>" alt="Event Banner">
 
     <div class="event-content">
 
@@ -335,6 +323,14 @@ while(recentRs.next())
 
 </div>
 
+<%
+}
+if(!hasRecent){
+%>
+<div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #121c2f; border-radius: 14px; border: 1px dashed #34425d;">
+    <p style="color: #94a3b8; font-size: 16px;">You haven't published any events yet.</p>
+    <a href="addEvent.jsp" style="display: inline-block; margin-top: 12px; padding: 10px 20px; background: #ff3fa4; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">+ Create Your First Event</a>
+</div>
 <%
 }
 %>
