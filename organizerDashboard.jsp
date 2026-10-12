@@ -2,6 +2,7 @@
 pageEncoding="UTF-8"%>
 
 <%@ page import="java.sql.*" %>
+<%@ page import="database.DBConnection" %>
 
 <%
 if(session.getAttribute("userId") == null || session.getAttribute("role") == null || !"Organizer".equalsIgnoreCase(session.getAttribute("role").toString())){
@@ -12,13 +13,7 @@ if(session.getAttribute("userId") == null || session.getAttribute("role") == nul
 int organizerId = Integer.parseInt(session.getAttribute("userId").toString());
 String userName = session.getAttribute("userName") != null ? session.getAttribute("userName").toString() : "Organizer";
 
-Class.forName("com.mysql.cj.jdbc.Driver");
-
-Connection conn = DriverManager.getConnection(
-    "jdbc:mysql://localhost:3306/eventsphere",
-    "root",
-    ""
-);
+Connection conn = DBConnection.getConnection();
 
 /* Total Events */
 PreparedStatement ps1 = conn.prepareStatement("SELECT COUNT(*) FROM events WHERE organizer_id=?");
@@ -356,20 +351,7 @@ Designed for College Event Management
 <script src="js/organizerDashboard.js"></script>
 
 <%
-recentRs.close();
-recentStmt.close();
-
-rs1.close();
-rs2.close();
-rs3.close();
-rs4.close();
-
-ps1.close();
-ps2.close();
-ps3.close();
-ps4.close();
-
-conn.close();
+DBConnection.close(recentRs, rs1, rs2, rs3, rs4, recentStmt, ps1, ps2, ps3, ps4, conn);
 %>
 </body>
 

@@ -33,6 +33,8 @@ try {
         "r.registration_id, " +
         "r.event_id, " +
         "r.payment_status, " +
+        "r.payment_method, " +
+        "r.transaction_id, " +
         "r.registration_date, " +
         "r.full_name, " +
         "r.team_name, " +
@@ -275,6 +277,8 @@ try {
         double eventFee = rs.getDouble("event_fee");
         Timestamp regDate = rs.getTimestamp("registration_date");
         String paymentStatus = rs.getString("payment_status");
+        String paymentMethod = rs.getString("payment_method");
+        String transactionId = rs.getString("transaction_id");
         String banner = rs.getString("banner_image");
 
         boolean isPast = eventDate != null && eventDate.before(today);
@@ -335,6 +339,14 @@ try {
                 <div class="detail-item">
                     💰 Fee: <strong><%= "Paid".equalsIgnoreCase(paymentType) ? ("₹" + String.format("%.2f", eventFee)) : "Free" %></strong>
                 </div>
+                <div class="detail-item">
+                    💳 Method: <strong><%= SecurityUtil.escapeHtml(paymentMethod != null ? paymentMethod : ("Paid".equalsIgnoreCase(paymentType) ? "UPI" : "Free")) %></strong>
+                </div>
+                <% if(transactionId != null && !transactionId.trim().isEmpty()) { %>
+                <div class="detail-item">
+                    🔖 Ref: <strong style="font-family:monospace; color:#38bdf8;"><%= SecurityUtil.escapeHtml(transactionId) %></strong>
+                </div>
+                <% } %>
             </div>
 
             <div class="reg-timestamp">

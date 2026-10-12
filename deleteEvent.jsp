@@ -3,6 +3,7 @@
     pageEncoding="UTF-8"%>
 
 <%@ page import="java.sql.*" %>
+<%@ page import="database.DBConnection" %>
 
 <%
 /* =====================================================
@@ -87,17 +88,7 @@ try{
        DATABASE CONNECTION
        ================================================= */
 
-    Class.forName(
-        "com.mysql.cj.jdbc.Driver"
-    );
-
-
-    conn =
-        DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/eventsphere",
-            "root",
-            ""
-        );
+    conn = DBConnection.getConnection();
 
 
     /* =================================================
@@ -509,60 +500,10 @@ a{
 }
 finally{
 
-    try{
-
-        if(checkRs != null)
-            checkRs.close();
-
+    if (conn != null) {
+        try { conn.setAutoCommit(true); } catch (Exception ignored) {}
     }
-    catch(Exception e){}
-
-
-    try{
-
-        if(checkPs != null)
-            checkPs.close();
-
-    }
-    catch(Exception e){}
-
-
-    try{
-        if(deletePaymentsPs != null)
-            deletePaymentsPs.close();
-    }
-    catch(Exception e){}
-
-    try{
-
-        if(deleteRegistrationsPs != null)
-            deleteRegistrationsPs.close();
-
-    }
-    catch(Exception e){}
-
-
-    try{
-
-        if(deleteEventPs != null)
-            deleteEventPs.close();
-
-    }
-    catch(Exception e){}
-
-
-    try{
-
-        if(conn != null){
-
-            conn.setAutoCommit(true);
-
-            conn.close();
-
-        }
-
-    }
-    catch(Exception e){}
+    DBConnection.close(checkRs, checkPs, deletePaymentsPs, deleteRegistrationsPs, deleteEventPs, conn);
 
 }
 

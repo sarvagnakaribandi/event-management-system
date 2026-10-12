@@ -116,6 +116,12 @@ String paymentScreenshotName =
         "payment_screenshot_name"
     );
 
+String paymentMethodParam =
+    request.getParameter("payment_method");
+
+String upiTransactionId =
+    request.getParameter("upi_transaction_id");
+
 
 /* =====================================================
    DATABASE VARIABLES
@@ -125,7 +131,9 @@ Connection conn = null;
 
 PreparedStatement checkPs = null;
 PreparedStatement eventPs = null;
+PreparedStatement decrPs = null;
 PreparedStatement insertPs = null;
+PreparedStatement payPs = null;
 
 ResultSet checkRs = null;
 ResultSet eventRs = null;
@@ -178,6 +186,9 @@ try{
 
     String paymentType =
         eventRs.getString("payment_type");
+
+    double eventFee =
+        eventRs.getDouble("event_fee");
 
     int availableSeats = eventRs.getInt("available_seats");
     java.sql.Date today = new java.sql.Date(System.currentTimeMillis());
@@ -361,493 +372,156 @@ a{
 
 
     /* =================================================
-       PAYMENT STATUS
+       PAYMENT STATUS & METHOD RESOLUTION (PHASE 4)
        ================================================= */
 
     String paymentStatus;
+    String paymentMethod;
+    String transactionId;
+    String savedScreenshot = null;
 
-
-    if("Paid".equalsIgnoreCase(
-        paymentType
-    )){
-
-        paymentStatus =
-            "Pending";
-
-    }
-    else{
-
-        paymentStatus =
-            "Not Required";
-
-    }
-
-
-    /* =================================================
-       PAYMENT SCREENSHOT
-       ================================================= */
-
-    String savedScreenshot =
-        null;
-
-
-    /*
-       Only paid events need
-       payment screenshot.
-    */
-
-    if("Paid".equalsIgnoreCase(
-        paymentType
-    )){
-
-
-        if(paymentScreenshotData != null &&
-           !paymentScreenshotData.trim().equals("")){
-
-
-            /* =========================================
-               PAYMENT UPLOAD FOLDER
-               ========================================= */
-
-            String uploadPath =
-                application.getRealPath(
-                    "/payment_uploads"
-                );
-
-
-            File uploadFolder =
-                new File(
-                    uploadPath
-                );
-
-
-            /*
-               Create folder automatically
-               if it doesn't exist.
-            */
-
-            if(!uploadFolder.exists()){
-
-                uploadFolder.mkdirs();
-
+    if ("Free".equalsIgnoreCase(paymentType) || eventFee <= 0) {
+        paymentStatus = "Not Required";
+        paymentMethod = "Free";
+        transactionId = "FREE-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    } else {
+        if ("Gateway".equalsIgnoreCase(paymentMethodParam)) {
+            // Instant Sandbox Gateway Checkout
+            paymentStatus = "Approved";
+            paymentMethod = "Sandbox Gateway";
+            transactionId = "SBX-" + UUID.randomUUID().toString().substring(0, 10).toUpperCase();
+        } else {
+            // Manual UPI / QR code transfer
+            paymentStatus = "Pending";
+            paymentMethod = "UPI";
+            if (upiTransactionId != null && !upiTransactionId.trim().isEmpty()) {
+                transactionId = upiTransactionId.trim();
+            } else {
+                transactionId = "UPI-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
             }
 
-
-            /* =========================================
-               REMOVE DATA URL PREFIX
-               ========================================= */
-
-            String[] parts =
-                paymentScreenshotData.split(
-                    ","
-                );
-
-
-            String base64Data =
-                parts.length > 1
-                ? parts[1]
-                : parts[0];
-
-
-            /* =========================================
-               DECODE BASE64
-               ========================================= */
-
-            byte[] imageBytes =
-                Base64.getDecoder().decode(
-                    base64Data
-                );
-
-
-            /* =========================================
-               DETERMINE FILE EXTENSION
-               ========================================= */
-
-            String extension =
-                ".jpg";
-
-
-            if(paymentScreenshotName != null){
-
-                String lowerName =
-                    paymentScreenshotName
-                        .toLowerCase();
-
-
-                if(lowerName.endsWith(
-                    ".png"
-                )){
-
-                    extension =
-                        ".png";
-
-                }
-                else if(
-                    lowerName.endsWith(
-                        ".jpeg"
-                    )
-                ){
-
-                    extension =
-                        ".jpeg";
-
-                }
-                else if(
-                    lowerName.endsWith(
-                        ".jpg"
-                    )
-                ){
-
-                    extension =
-                        ".jpg";
-
+            // Save Screenshot if provided
+            if (paymentScreenshotData != null && !paymentScreenshotData.trim().isEmpty()) {
+                String uploadPath = application.getRealPath("/images");
+                File uploadFolder = new File(uploadPath);
+                if (!uploadFolder.exists()) {
+                    uploadFolder.mkdirs();
                 }
 
+                String[] parts = paymentScreenshotData.split(",");
+                String base64Data = parts.length > 1 ? parts[1] : parts[0];
+                byte[] imageBytes = Base64.getDecoder().decode(base64Data);
+
+                String extension = ".jpg";
+                if (paymentScreenshotName != null) {
+                    String lowerName = paymentScreenshotName.toLowerCase();
+                    if (lowerName.endsWith(".png")) extension = ".png";
+                    else if (lowerName.endsWith(".jpeg")) extension = ".jpeg";
+                }
+
+                savedScreenshot = "payment_" + UUID.randomUUID().toString() + extension;
+                File screenshotFile = new File(uploadFolder, savedScreenshot);
+                try (FileOutputStream output = new FileOutputStream(screenshotFile)) {
+                    output.write(imageBytes);
+                }
             }
-
-
-            /* =========================================
-               UNIQUE FILE NAME
-               ========================================= */
-
-            savedScreenshot =
-                "payment_" +
-                UUID.randomUUID()
-                    .toString() +
-                extension;
-
-
-            /* =========================================
-               SAVE SCREENSHOT
-               ========================================= */
-
-            File screenshotFile =
-                new File(
-
-                    uploadFolder,
-
-                    savedScreenshot
-                );
-
-
-            FileOutputStream output =
-                null;
-
-
-            try{
-
-                output =
-                    new FileOutputStream(
-                        screenshotFile
-                    );
-
-
-                output.write(
-                    imageBytes
-                );
-
-            }
-            finally{
-
-                if(output != null){
-
-                    output.close();
-
-                }
-
-            }
-
         }
-
     }
 
-
     /* =================================================
-       INSERT REGISTRATION
+       ATOMIC TRANSACTION: CAPACITY DECREMENT & BOOKING
        ================================================= */
 
-    String sql =
+    conn.setAutoCommit(false);
 
-        "INSERT INTO registrations (" +
-
-        "user_id," +
-        "event_id," +
-        "full_name," +
-        "email," +
-        "phone," +
-        "gender," +
-        "date_of_birth," +
-        "city," +
-        "state," +
-        "country," +
-        "emergency_contact," +
-        "team_name," +
-        "team_members," +
-        "special_requirements," +
-        "payment_status," +
-        "payment_screenshot" +
-
-        ") VALUES (" +
-
-        "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?" +
-
-        ")";
-
-
-    insertPs =
-        conn.prepareStatement(
-            sql,
-            Statement.RETURN_GENERATED_KEYS
-        );
-
-
-    /* =================================================
-       1. USER ID
-       ================================================= */
-
-    insertPs.setInt(
-        1,
-        userId
+    // 1. Enforce atomic capacity decrement (guards against overbooking)
+    decrPs = conn.prepareStatement(
+        "UPDATE events SET available_seats = available_seats - 1 WHERE event_id = ? AND available_seats > 0"
     );
-
-
-    /* =================================================
-       2. EVENT ID
-       ================================================= */
-
-    insertPs.setInt(
-        2,
-        eventIdInt
-    );
-
-
-    /* =================================================
-       3. FULL NAME
-       ================================================= */
-
-    insertPs.setString(
-        3,
-        fullName
-    );
-
-
-    /* =================================================
-       4. EMAIL
-       ================================================= */
-
-    insertPs.setString(
-        4,
-        email
-    );
-
-
-    /* =================================================
-       5. PHONE
-       ================================================= */
-
-    insertPs.setString(
-        5,
-        phone
-    );
-
-
-    /* =================================================
-       6. GENDER
-       ================================================= */
-
-    insertPs.setString(
-        6,
-        gender
-    );
-
-
-    /* =================================================
-       7. DATE OF BIRTH
-       ================================================= */
-
-    if(dateOfBirth == null ||
-       dateOfBirth.trim().equals("")){
-
-        insertPs.setNull(
-            7,
-            Types.DATE
-        );
-
-    }
-    else{
-
-        insertPs.setDate(
-
-            7,
-
-            java.sql.Date.valueOf(
-                dateOfBirth
-            )
-        );
-
-    }
-
-
-    /* =================================================
-       8. CITY
-       ================================================= */
-
-    insertPs.setString(
-        8,
-        city
-    );
-
-
-    /* =================================================
-       9. STATE
-       ================================================= */
-
-    insertPs.setString(
-        9,
-        state
-    );
-
-
-    /* =================================================
-       10. COUNTRY
-       ================================================= */
-
-    insertPs.setString(
-        10,
-        country
-    );
-
-
-    /* =================================================
-       11. EMERGENCY CONTACT
-       ================================================= */
-
-    insertPs.setString(
-        11,
-        emergencyContact
-    );
-
-
-    /* =================================================
-       12. TEAM NAME
-       ================================================= */
-
-    insertPs.setString(
-        12,
-        teamName
-    );
-
-
-    /* =================================================
-       13. TEAM MEMBERS
-       ================================================= */
-
-    if(teamMembers == null ||
-       teamMembers.trim().equals("")){
-
-        insertPs.setInt(
-            13,
-            1
-        );
-
-    }
-    else{
-
-        insertPs.setInt(
-
-            13,
-
-            Integer.parseInt(
-                teamMembers
-            )
-        );
-
-    }
-
-
-    /* =================================================
-       14. SPECIAL REQUIREMENTS
-       ================================================= */
-
-    insertPs.setString(
-        14,
-        specialRequirements
-    );
-
-
-    /* =================================================
-       15. PAYMENT STATUS
-       ================================================= */
-
-    insertPs.setString(
-        15,
-        paymentStatus
-    );
-
-
-    /* =================================================
-       16. PAYMENT SCREENSHOT
-       ================================================= */
-
-    if(savedScreenshot == null){
-
-        insertPs.setNull(
-            16,
-            Types.VARCHAR
-        );
-
-    }
-    else{
-
-        insertPs.setString(
-            16,
-            savedScreenshot
-        );
-
-    }
-
-
-    /* =================================================
-       SAVE REGISTRATION
-       ================================================= */
-
-    int result =
-        insertPs.executeUpdate();
-
-
-    if(result > 0){
-        // Decrement available seats atomically
-        PreparedStatement seatPs = null;
-        try {
-            seatPs = conn.prepareStatement(
-                "UPDATE events SET available_seats = GREATEST(0, available_seats - 1) WHERE event_id = ? AND available_seats > 0"
-            );
-            seatPs.setInt(1, eventIdInt);
-            seatPs.executeUpdate();
-        } catch(Exception ignored){
-        } finally {
-            DBConnection.close(seatPs);
-        }
-
-        response.sendRedirect(
-            "registrationSuccess.jsp?id="
-            + eventIdInt
-        );
-
+    decrPs.setInt(1, eventIdInt);
+    int seatUpdated = decrPs.executeUpdate();
+    decrPs.close();
+
+    if (seatUpdated <= 0) {
+        conn.rollback();
+        out.println("<script>alert('Sorry, this event is fully booked! No seats remaining.'); history.back();</script>");
         return;
-
     }
-    else{
 
-        out.println(
-            "<h2>Registration failed.</h2>"
-        );
+    // 2. Insert into registrations table
+    String sql =
+        "INSERT INTO registrations (" +
+        "user_id, event_id, full_name, email, phone, gender, date_of_birth, " +
+        "city, state, country, emergency_contact, team_name, team_members, " +
+        "special_requirements, payment_status, payment_screenshot, payment_method, transaction_id" +
+        ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
+    insertPs = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+    insertPs.setInt(1, userId);
+    insertPs.setInt(2, eventIdInt);
+    insertPs.setString(3, fullName);
+    insertPs.setString(4, email);
+    insertPs.setString(5, phone);
+    insertPs.setString(6, gender);
+
+    if (dateOfBirth == null || dateOfBirth.trim().isEmpty()) {
+        insertPs.setNull(7, Types.DATE);
+    } else {
+        insertPs.setDate(7, java.sql.Date.valueOf(dateOfBirth));
     }
+
+    insertPs.setString(8, city);
+    insertPs.setString(9, state);
+    insertPs.setString(10, country);
+    insertPs.setString(11, emergencyContact);
+    insertPs.setString(12, teamName);
+    insertPs.setInt(13, (teamMembers == null || teamMembers.trim().isEmpty()) ? 1 : Integer.parseInt(teamMembers.trim()));
+    insertPs.setString(14, specialRequirements);
+    insertPs.setString(15, paymentStatus);
+
+    if (savedScreenshot == null) {
+        insertPs.setNull(16, Types.VARCHAR);
+    } else {
+        insertPs.setString(16, savedScreenshot);
+    }
+
+    insertPs.setString(17, paymentMethod);
+    insertPs.setString(18, transactionId);
+
+    int regResult = insertPs.executeUpdate();
+
+    ResultSet genKeys = insertPs.getGeneratedKeys();
+    int newRegistrationId = 0;
+    if (genKeys.next()) {
+        newRegistrationId = genKeys.getInt(1);
+    }
+    genKeys.close();
+
+    // 3. Automatically populate payments table for every transaction
+    payPs = conn.prepareStatement(
+        "INSERT INTO payments (registration_id, amount, payment_status, payment_method, transaction_id) " +
+        "VALUES (?, ?, ?, ?, ?)"
+    );
+    payPs.setInt(1, newRegistrationId);
+    payPs.setDouble(2, ("Paid".equalsIgnoreCase(paymentType) && eventFee > 0) ? eventFee : 0.00);
+    payPs.setString(3, paymentStatus);
+    payPs.setString(4, paymentMethod);
+    payPs.setString(5, transactionId);
+    payPs.executeUpdate();
+    payPs.close();
+
+    // Commit atomic transaction
+    conn.commit();
+
+    response.sendRedirect("registrationSuccess.jsp?id=" + eventIdInt + "&reg_id=" + newRegistrationId);
+    return;
 
 
 }
 catch(NumberFormatException e){
+    if (conn != null) {
+        try { conn.rollback(); } catch(Exception ignored){}
+    }
 
 %>
 
@@ -886,6 +560,9 @@ catch(NumberFormatException e){
 
 }
 catch(SQLException e){
+    if (conn != null) {
+        try { conn.rollback(); } catch(Exception ignored){}
+    }
 
 %>
 
@@ -923,6 +600,9 @@ catch(SQLException e){
 
 }
 catch(Exception e){
+    if (conn != null) {
+        try { conn.rollback(); } catch(Exception ignored){}
+    }
 
 %>
 
@@ -960,11 +640,9 @@ catch(Exception e){
 
 }
 finally{
-    DBConnection.close(checkRs);
-    DBConnection.close(eventRs);
-    DBConnection.close(checkPs);
-    DBConnection.close(eventPs);
-    DBConnection.close(insertPs);
-    DBConnection.close(conn);
+    if (conn != null) {
+        try { conn.setAutoCommit(true); } catch(Exception ignored){}
+    }
+    DBConnection.close(checkRs, eventRs, checkPs, eventPs, decrPs, insertPs, payPs, conn);
 }
 %>
