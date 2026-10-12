@@ -2,6 +2,8 @@
 pageEncoding="UTF-8"%>
 
 <%@ page import="java.sql.*" %>
+<%@ page import="database.DBConnection" %>
+<%@ page import="database.SecurityUtil" %>
 
 <%
 if(session.getAttribute("userId") == null){
@@ -13,13 +15,7 @@ int userId = Integer.parseInt(
     session.getAttribute("userId").toString()
 );
 
-Class.forName("com.mysql.cj.jdbc.Driver");
-
-Connection conn = DriverManager.getConnection(
-    "jdbc:mysql://localhost:3306/eventsphere",
-    "root",
-    ""
-);
+Connection conn = DBConnection.getConnection();
 
 PreparedStatement typePs = conn.prepareStatement(
     "SELECT * FROM event_types ORDER BY event_type_name"
@@ -549,7 +545,5 @@ while(typeRs.next()){
 </html>
 
 <%
-typeRs.close();
-typePs.close();
-conn.close();
+DBConnection.close(typeRs, typePs, conn);
 %>

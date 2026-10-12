@@ -111,6 +111,16 @@ Manage Events
 
 <li>
 
+<a href="incomingRequests.jsp">
+
+Custom Requests
+
+</a>
+
+</li>
+
+<li>
+
 <a href="logout.jsp">
 
 Logout
