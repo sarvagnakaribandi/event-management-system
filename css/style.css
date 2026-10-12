@@ -13,6 +13,7 @@ body{
     width:100%;
     min-height:100%;
     overflow-x:hidden;
+    scroll-behavior:smooth;
 }
 
 /* ===========================
@@ -540,6 +541,13 @@ body{
     transform:translateY(-4px);
 }
 
+.category-card.active{
+    background: linear-gradient(135deg, rgba(142,61,255,0.3), rgba(255,63,164,0.25));
+    border-color:#ffd35b;
+    box-shadow: 0 0 20px rgba(255,211,91,0.3);
+    transform: translateY(-4px);
+}
+
 .category-icon{
     font-size:36px;
     margin-bottom:10px;
@@ -548,6 +556,37 @@ body{
 .category-card h4{
     font-size:16px;
     font-weight:600;
+}
+
+.badge-status{
+    padding:4px 10px;
+    border-radius:12px;
+    font-size:11px;
+    font-weight:600;
+}
+
+.badge-status.open{
+    background:rgba(85,230,207,0.15);
+    color:#55e6cf;
+    border:1px solid #55e6cf;
+}
+
+.badge-status.soldout{
+    background:rgba(255,113,128,0.15);
+    color:#ff7180;
+    border:1px solid #ff7180;
+}
+
+.badge-status.ended{
+    background:rgba(148,163,184,0.15);
+    color:#94a3b8;
+    border:1px solid #64748b;
+}
+
+.badge-status.closed{
+    background:rgba(255,189,61,0.15);
+    color:#ffbd3d;
+    border:1px solid #ffbd3d;
 }
 
 /* ===========================

@@ -3,6 +3,8 @@
     pageEncoding="UTF-8"%>
 
 <%@ page import="java.sql.*" %>
+<%@ page import="database.DBConnection" %>
+<%@ page import="database.SecurityUtil" %>
 
 <%
 /* =====================================================
@@ -10,11 +12,11 @@
    ===================================================== */
 
 if(session.getAttribute("userId") == null){
-
     response.sendRedirect("login.jsp");
     return;
 }
 
+int userId = Integer.parseInt(session.getAttribute("userId").toString());
 
 /* =====================================================
    GET EVENT ID
@@ -23,56 +25,61 @@ if(session.getAttribute("userId") == null){
 String eventId = request.getParameter("id");
 
 if(eventId == null || eventId.trim().equals("")){
-
     response.sendRedirect("userDashboard.jsp");
     return;
 }
 
+int eventIdInt;
+try {
+    eventIdInt = Integer.parseInt(eventId.trim());
+} catch(Exception e) {
+    response.sendRedirect("userDashboard.jsp");
+    return;
+}
 
 Connection conn = null;
 PreparedStatement ps = null;
 ResultSet rs = null;
-
+PreparedStatement regCheckPs = null;
+ResultSet regCheckRs = null;
 
 try{
-
-    Class.forName(
-        "com.mysql.cj.jdbc.Driver"
-    );
-
-
-    conn = DriverManager.getConnection(
-        "jdbc:mysql://localhost:3306/eventsphere",
-        "root",
-        ""
-    );
-
+    conn = DBConnection.getConnection();
 
     ps = conn.prepareStatement(
         "SELECT * FROM events WHERE event_id=?"
     );
 
-
-    ps.setInt(
-        1,
-        Integer.parseInt(eventId)
-    );
-
-
+    ps.setInt(1, eventIdInt);
     rs = ps.executeQuery();
 
-
     if(rs.next()){
+        Date eventDate = rs.getDate("event_date");
+        Date regDeadline = rs.getDate("registration_deadline");
+        int availableSeats = rs.getInt("available_seats");
+        Date today = new Date(System.currentTimeMillis());
 
-        String paymentType =
-            rs.getString("payment_type");
+        boolean isEventPast = eventDate != null && eventDate.before(today);
+        boolean isDeadlinePast = regDeadline != null && regDeadline.before(today);
+        boolean isSoldOut = availableSeats <= 0;
 
-        String banner =
-            rs.getString("banner_image");
+        // Check duplicate registration
+        regCheckPs = conn.prepareStatement(
+            "SELECT registration_id FROM registrations WHERE user_id=? AND event_id=?"
+        );
+        regCheckPs.setInt(1, userId);
+        regCheckPs.setInt(2, eventIdInt);
+        regCheckRs = regCheckPs.executeQuery();
+        boolean alreadyRegistered = regCheckRs.next();
 
-        String qrImage =
-            rs.getString("qr_image");
+        if(alreadyRegistered || isEventPast || isDeadlinePast || isSoldOut){
+            response.sendRedirect("eventDetails.jsp?id=" + eventIdInt);
+            return;
+        }
 
+        String paymentType = rs.getString("payment_type");
+        String banner = rs.getString("banner_image");
+        String qrImage = rs.getString("qr_image");
 %>
 
 <!DOCTYPE html>
@@ -105,7 +112,7 @@ try{
      BACK
      ===================================================== -->
 
-<a href="viewEvent.jsp?id=<%=rs.getInt("event_id")%>"
+<a href="eventDetails.jsp?id=<%=rs.getInt("event_id")%>"
    class="back-btn">
 
     ← Back to Event
@@ -905,30 +912,10 @@ catch(Exception e){
 
 }
 finally{
-
-    try{
-
-        if(rs != null)
-            rs.close();
-
-    }catch(Exception e){}
-
-
-    try{
-
-        if(ps != null)
-            ps.close();
-
-    }catch(Exception e){}
-
-
-    try{
-
-        if(conn != null)
-            conn.close();
-
-    }catch(Exception e){}
-
+    DBConnection.close(regCheckRs);
+    DBConnection.close(regCheckPs);
+    DBConnection.close(rs);
+    DBConnection.close(ps);
+    DBConnection.close(conn);
 }
-
 %>

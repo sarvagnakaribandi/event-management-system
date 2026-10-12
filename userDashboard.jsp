@@ -185,10 +185,16 @@ try {
         <p>Explore and register for upcoming events.</p>
     </div>
 
+    <!-- ACTIVE FILTER TOOLBAR -->
+    <div id="filterToolbar" style="display:none; margin: -25px auto 35px; text-align:center; padding:12px 24px; background:rgba(20,30,50,0.85); border:1px solid #334460; border-radius:30px; max-width:550px; box-shadow:0 8px 25px rgba(0,0,0,0.4);">
+        <span style="color:#cbd5e1; font-size:14px;">Active Filter: <strong id="activeFilterPill" style="color:#ffd369; margin-left:6px;">All Events</strong></span>
+        <button type="button" onclick="resetAllFilters()" style="margin-left:15px; padding:5px 14px; background:#7c3aed; color:white; border:none; border-radius:15px; cursor:pointer; font-size:12px; font-weight:600;">✕ Reset Filters</button>
+    </div>
+
     <div id="noEventsMessage" style="display:none; text-align:center; padding:50px; background:#121c2f; border-radius:18px; border:1px dashed #34425d; margin-bottom:30px;">
         <h3 style="color:#ffbd3d;">No matching events found</h3>
         <p style="color:#9daecc;">Try adjusting your search keyword or click "All Events" above.</p>
-        <button onclick="filterCategory('ALL')" style="margin-top:15px; padding:8px 20px; background:#7c3aed; color:white; border:none; border-radius:8px; cursor:pointer;">Reset Filters</button>
+        <button onclick="resetAllFilters()" style="margin-top:15px; padding:8px 20px; background:#7c3aed; color:white; border:none; border-radius:8px; cursor:pointer;">Reset Filters</button>
     </div>
 
     <div class="event-container" id="eventCardList">
@@ -207,15 +213,23 @@ while(rs.next()){
     String image = rs.getString("banner_image");
     if(image == null || image.trim().isEmpty()){
         image = "image2.png";
+    } else {
+        image = image.trim();
+        if(image.startsWith("images/")){
+            image = image.substring("images/".length());
+        } else if(image.startsWith("/images/")){
+            image = image.substring("/images/".length());
+        }
     }
 %>
         <!-- EVENT CARD -->
         <div class="event-card" 
              data-name="<%= SecurityUtil.escapeHtml(eventName) %>" 
              data-category="<%= SecurityUtil.escapeHtml(category != null ? category : "") %>" 
-             data-venue="<%= SecurityUtil.escapeHtml(venue != null ? venue : "") %>">
+             data-venue="<%= SecurityUtil.escapeHtml(venue != null ? venue : "") %>"
+             data-description="<%= SecurityUtil.escapeHtml(subtitle != null ? subtitle : "") %>">
 
-            <img src="images/<%= SecurityUtil.escapeHtml(image) %>" alt="<%= SecurityUtil.escapeHtml(eventName) %>">
+            <img src="images/<%= SecurityUtil.escapeHtml(image) %>" alt="<%= SecurityUtil.escapeHtml(eventName) %>" onerror="this.onerror=null;this.src='images/image2.png';">
 
             <div class="event-content">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">

@@ -19,24 +19,25 @@ try {
     conn = DBConnection.getConnection();
     
     StringBuilder sql = new StringBuilder(
-        "SELECT event_id, event_name, subtitle, category, event_date, event_time, venue, banner_image, payment_type, event_fee, available_seats " +
-        "FROM events WHERE event_date >= CURDATE() "
+        "SELECT event_id, event_name, subtitle, category, event_date, event_time, venue, banner_image, payment_type, event_fee, available_seats, max_capacity, registration_deadline " +
+        "FROM events WHERE 1=1 "
     );
 
     if(searchParam != null && !searchParam.trim().isEmpty()){
-        sql.append("AND (event_name LIKE ? OR subtitle LIKE ? OR description LIKE ? OR venue LIKE ?) ");
+        sql.append("AND (event_name LIKE ? OR subtitle LIKE ? OR description LIKE ? OR venue LIKE ? OR category LIKE ?) ");
     }
     if(categoryParam != null && !categoryParam.trim().isEmpty()){
         sql.append("AND category = ? ");
     }
 
-    sql.append("ORDER BY event_date ASC LIMIT 12");
+    sql.append("ORDER BY (CASE WHEN event_date >= CURDATE() THEN 0 ELSE 1 END), event_date ASC LIMIT 16");
 
     ps = conn.prepareStatement(sql.toString());
 
     int paramIndex = 1;
     if(searchParam != null && !searchParam.trim().isEmpty()){
         String kw = "%" + searchParam.trim() + "%";
+        ps.setString(paramIndex++, kw);
         ps.setString(paramIndex++, kw);
         ps.setString(paramIndex++, kw);
         ps.setString(paramIndex++, kw);
@@ -82,7 +83,8 @@ try {
                 <% } else if("Organizer".equalsIgnoreCase(currentRole)) { %>
                     <a href="organizerDashboard.jsp" style="color:#ffd35b; font-weight:600;">Organizer Panel</a>
                 <% } else { %>
-                    <a href="userDashboard.jsp" style="color:#ffd35b; font-weight:600;">My Dashboard</a>
+                    <a href="userDashboard.jsp" style="color:#ffd35b; font-weight:600;">Dashboard</a>
+                    <a href="myRegistrations.jsp" style="color:#ffd35b; font-weight:600;">My Registrations</a>
                 <% } %>
                 <a href="logout.jsp" style="color:#ff7180;">Logout (<%=SecurityUtil.escapeHtml(currentUserName)%>)</a>
             <% } else { %>
@@ -122,35 +124,39 @@ try {
         </div>
 
         <div class="category-grid">
-            <a href="index.jsp?category=Technical#events" class="category-card">
+            <a href="index.jsp#events" class="category-card <%= (categoryParam == null || categoryParam.isEmpty()) ? "active" : "" %>">
+                <div class="category-icon">🌐</div>
+                <h4>All Events</h4>
+            </a>
+            <a href="index.jsp?category=Technical#events" class="category-card <%= "Technical".equalsIgnoreCase(categoryParam) ? "active" : "" %>">
                 <div class="category-icon">💻</div>
                 <h4>Technical</h4>
             </a>
-            <a href="index.jsp?category=Gaming#events" class="category-card">
+            <a href="index.jsp?category=Gaming#events" class="category-card <%= "Gaming".equalsIgnoreCase(categoryParam) ? "active" : "" %>">
                 <div class="category-icon">🎮</div>
                 <h4>Gaming</h4>
             </a>
-            <a href="index.jsp?category=Cultural#events" class="category-card">
+            <a href="index.jsp?category=Cultural#events" class="category-card <%= "Cultural".equalsIgnoreCase(categoryParam) ? "active" : "" %>">
                 <div class="category-icon">🎭</div>
                 <h4>Cultural</h4>
             </a>
-            <a href="index.jsp?category=Sports#events" class="category-card">
+            <a href="index.jsp?category=Sports#events" class="category-card <%= "Sports".equalsIgnoreCase(categoryParam) ? "active" : "" %>">
                 <div class="category-icon">⚽</div>
                 <h4>Sports</h4>
             </a>
-            <a href="index.jsp?category=Music#events" class="category-card">
+            <a href="index.jsp?category=Music#events" class="category-card <%= "Music".equalsIgnoreCase(categoryParam) ? "active" : "" %>">
                 <div class="category-icon">🎵</div>
                 <h4>Music & Concerts</h4>
             </a>
-            <a href="index.jsp?category=Workshop#events" class="category-card">
+            <a href="index.jsp?category=Workshop#events" class="category-card <%= "Workshop".equalsIgnoreCase(categoryParam) ? "active" : "" %>">
                 <div class="category-icon">🤖</div>
                 <h4>Workshops</h4>
             </a>
-            <a href="index.jsp?category=Dance#events" class="category-card">
+            <a href="index.jsp?category=Dance#events" class="category-card <%= "Dance".equalsIgnoreCase(categoryParam) ? "active" : "" %>">
                 <div class="category-icon">💃</div>
                 <h4>Dance</h4>
             </a>
-            <a href="index.jsp?category=Hackathon#events" class="category-card">
+            <a href="index.jsp?category=Hackathon#events" class="category-card <%= "Hackathon".equalsIgnoreCase(categoryParam) ? "active" : "" %>">
                 <div class="category-icon">🏆</div>
                 <h4>Hackathons</h4>
             </a>
@@ -175,26 +181,38 @@ try {
         <div class="event-grid">
             <%
             boolean foundEvents = false;
+            java.sql.Date today = new java.sql.Date(System.currentTimeMillis());
             while(rs.next()){
                 foundEvents = true;
                 int eId = rs.getInt("event_id");
                 String eName = rs.getString("event_name");
                 String eSub = rs.getString("subtitle");
                 String eCat = rs.getString("category");
-                String eDate = rs.getString("event_date");
-                String eTime = rs.getString("event_time");
+                java.sql.Date eDate = rs.getDate("event_date");
+                Time eTime = rs.getTime("event_time");
+                java.sql.Date regDeadline = rs.getDate("registration_deadline");
                 String eVenue = rs.getString("venue");
                 String eBanner = rs.getString("banner_image");
                 String ePayType = rs.getString("payment_type");
                 double eFee = rs.getDouble("event_fee");
                 int seatsLeft = rs.getInt("available_seats");
 
+                boolean isPast = eDate != null && eDate.before(today);
+                boolean isDeadlinePast = regDeadline != null && regDeadline.before(today);
+
                 if(eBanner == null || eBanner.trim().isEmpty()){
                     eBanner = "image2.png";
+                } else {
+                    eBanner = eBanner.trim();
+                    if(eBanner.startsWith("images/")){
+                        eBanner = eBanner.substring("images/".length());
+                    } else if(eBanner.startsWith("/images/")){
+                        eBanner = eBanner.substring("/images/".length());
+                    }
                 }
             %>
             <div class="event-card">
-                <img src="images/<%= SecurityUtil.escapeHtml(eBanner) %>" alt="<%= SecurityUtil.escapeHtml(eName) %>">
+                <img src="images/<%= SecurityUtil.escapeHtml(eBanner) %>" alt="<%= SecurityUtil.escapeHtml(eName) %>" onerror="this.onerror=null;this.src='images/image2.png';">
                 <div class="event-card-body">
                     <div class="event-meta-top">
                         <span class="badge-cat"><%= SecurityUtil.escapeHtml(eCat != null ? eCat : "General") %></span>
@@ -209,17 +227,23 @@ try {
                     
                     <div class="event-info-line">
                         <span>📅</span>
-                        <span><%= eDate %> at <%= eTime != null ? eTime.substring(0, 5) : "" %></span>
+                        <span><%= eDate %> <%= eTime != null ? ("at " + eTime.toString().substring(0, 5)) : "" %></span>
                     </div>
                     <div class="event-info-line">
                         <span>📍</span>
                         <span><%= SecurityUtil.escapeHtml(eVenue != null ? eVenue : "TBA") %></span>
                     </div>
-                    <div class="event-info-line">
+                    <div class="event-info-line" style="margin-top:4px;">
                         <span>🎟</span>
-                        <span style="color:<%= seatsLeft > 0 ? "#55e6cf" : "#ff7180" %>;">
-                            <%= seatsLeft > 0 ? (seatsLeft + " seats available") : "Fully Booked" %>
-                        </span>
+                        <% if(isPast) { %>
+                            <span class="badge-status ended">Event Ended</span>
+                        <% } else if(isDeadlinePast) { %>
+                            <span class="badge-status closed">Deadline Passed</span>
+                        <% } else if(seatsLeft <= 0) { %>
+                            <span class="badge-status soldout">Fully Booked</span>
+                        <% } else { %>
+                            <span class="badge-status open"><%= seatsLeft %> seats available</span>
+                        <% } %>
                     </div>
 
                     <div class="event-card-action">

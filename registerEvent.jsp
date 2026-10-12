@@ -6,6 +6,8 @@
 <%@ page import="java.io.*" %>
 <%@ page import="java.util.*" %>
 <%@ page import="java.util.Base64" %>
+<%@ page import="database.DBConnection" %>
+<%@ page import="database.SecurityUtil" %>
 
 <%
 /* =====================================================
@@ -135,20 +137,7 @@ try{
        DATABASE CONNECTION
        ================================================= */
 
-    Class.forName(
-        "com.mysql.cj.jdbc.Driver"
-    );
-
-
-    conn =
-        DriverManager.getConnection(
-
-            "jdbc:mysql://localhost:3306/eventsphere",
-
-            "root",
-
-            ""
-        );
+    conn = DBConnection.getConnection();
 
 
     /* =================================================
@@ -827,6 +816,18 @@ a{
 
 
     if(result > 0){
+        // Decrement available seats atomically
+        PreparedStatement seatPs = null;
+        try {
+            seatPs = conn.prepareStatement(
+                "UPDATE events SET available_seats = GREATEST(0, available_seats - 1) WHERE event_id = ? AND available_seats > 0"
+            );
+            seatPs.setInt(1, eventIdInt);
+            seatPs.executeUpdate();
+        } catch(Exception ignored){
+        } finally {
+            DBConnection.close(seatPs);
+        }
 
         response.sendRedirect(
             "registrationSuccess.jsp?id="
@@ -959,61 +960,11 @@ catch(Exception e){
 
 }
 finally{
-
-
-    try{
-
-        if(checkRs != null)
-            checkRs.close();
-
-    }
-    catch(Exception e){}
-
-
-    try{
-
-        if(eventRs != null)
-            eventRs.close();
-
-    }
-    catch(Exception e){}
-
-
-    try{
-
-        if(checkPs != null)
-            checkPs.close();
-
-    }
-    catch(Exception e){}
-
-
-    try{
-
-        if(eventPs != null)
-            eventPs.close();
-
-    }
-    catch(Exception e){}
-
-
-    try{
-
-        if(insertPs != null)
-            insertPs.close();
-
-    }
-    catch(Exception e){}
-
-
-    try{
-
-        if(conn != null)
-            conn.close();
-
-    }
-    catch(Exception e){}
-
+    DBConnection.close(checkRs);
+    DBConnection.close(eventRs);
+    DBConnection.close(checkPs);
+    DBConnection.close(eventPs);
+    DBConnection.close(insertPs);
+    DBConnection.close(conn);
 }
-
 %>

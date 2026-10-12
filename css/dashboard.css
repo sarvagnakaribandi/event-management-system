@@ -382,6 +382,18 @@ body{
 
 }
 
+.cat-card.cat-card-active{
+
+    background:linear-gradient(135deg, #ff3fa4, #8e3dff) !important;
+
+    border:1px solid #ffd369 !important;
+
+    box-shadow:0 0 18px rgba(255, 211, 105, 0.45) !important;
+
+    transform:scale(1.05);
+
+}
+
 @keyframes scrollLeft{
 
     from{

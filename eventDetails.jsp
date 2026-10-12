@@ -77,6 +77,13 @@ try{
 
         if(bannerImage == null || bannerImage.trim().isEmpty()){
             bannerImage = "image2.png";
+        } else {
+            bannerImage = bannerImage.trim();
+            if(bannerImage.startsWith("images/")){
+                bannerImage = bannerImage.substring("images/".length());
+            } else if(bannerImage.startsWith("/images/")){
+                bannerImage = bannerImage.substring("/images/".length());
+            }
         }
 
         // Date and capacity validation
@@ -161,7 +168,7 @@ try{
 
 <!-- Banner -->
 <section class="banner">
-    <img src="images/<%= SecurityUtil.escapeHtml(bannerImage) %>" alt="<%= SecurityUtil.escapeHtml(eventName) %>">
+    <img src="images/<%= SecurityUtil.escapeHtml(bannerImage) %>" alt="<%= SecurityUtil.escapeHtml(eventName) %>" onerror="this.onerror=null;this.src='images/image2.png';">
 </section>
 
 <div class="container">
