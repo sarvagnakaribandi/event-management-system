@@ -45,6 +45,14 @@ ps4.setInt(1, organizerId);
 ResultSet rs4 = ps4.executeQuery();
 int completed = 0;
 if(rs4.next()) completed = rs4.getInt(1);
+
+/* Verification Status */
+PreparedStatement psVerif = conn.prepareStatement(
+    "SELECT verification_status FROM organizer_profiles WHERE organizer_id=?");
+psVerif.setInt(1, organizerId);
+ResultSet rsVerif = psVerif.executeQuery();
+String verifStatus = "Not Submitted";
+if(rsVerif.next() && rsVerif.getString(1) != null) verifStatus = rsVerif.getString(1);
 %>
 
 <!DOCTYPE html>
@@ -121,6 +129,16 @@ Custom Requests
 
 <li>
 
+<a href="organizerProfile.jsp">
+
+My Profile & Trust
+
+</a>
+
+</li>
+
+<li>
+
 <a href="logout.jsp">
 
 Logout
@@ -147,6 +165,16 @@ Hello,
 
 <span><%=userName%></span>
 
+<% if ("Verified".equalsIgnoreCase(verifStatus)) { %>
+<span style="background:rgba(34,197,94,0.2); color:#4ade80; border:1px solid #22c55e; font-size:12px; font-weight:700; padding:4px 12px; border-radius:20px; vertical-align:middle; margin-left:8px; display:inline-block;">
+    ✅ Verified
+</span>
+<% } else if ("Pending".equalsIgnoreCase(verifStatus)) { %>
+<span style="background:rgba(234,179,8,0.2); color:#facc15; border:1px solid #eab308; font-size:12px; font-weight:700; padding:4px 12px; border-radius:20px; vertical-align:middle; margin-left:8px; display:inline-block;">
+    ⏳ Verification Pending
+</span>
+<% } %>
+
 👋
 
 </h1>
@@ -171,6 +199,12 @@ organized from one dashboard.
 <a href="manageEvents.jsp">
 
 📅 Manage Events
+
+</a>
+
+<a href="organizerProfile.jsp" style="background:#202e48; border:1px solid #3d5175;">
+
+🛡️ Trust & Verification
 
 </a>
 
@@ -361,7 +395,7 @@ Designed for College Event Management
 <script src="js/organizerDashboard.js"></script>
 
 <%
-DBConnection.close(recentRs, rs1, rs2, rs3, rs4, recentStmt, ps1, ps2, ps3, ps4, conn);
+DBConnection.close(recentRs, rs1, rs2, rs3, rs4, rsVerif, recentStmt, ps1, ps2, ps3, ps4, psVerif, conn);
 %>
 </body>
 
