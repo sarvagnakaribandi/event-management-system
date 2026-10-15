@@ -2,6 +2,7 @@
 <%@ page import="java.sql.*" %>
 <%@ page import="database.DBConnection" %>
 <%@ page import="database.SecurityUtil" %>
+<%@ page import="database.NotificationDAO" %>
 
 <%
 /* =====================================================
@@ -156,6 +157,22 @@ try {
     statusPs = conn.prepareStatement("UPDATE event_requests SET status = 'Proposal Received' WHERE request_id = ? AND status = 'Pending'");
     statusPs.setInt(1, requestId);
     statusPs.executeUpdate();
+
+    // 5. In-App Notification (Phase 7)
+    try {
+        PreparedStatement reqPs = conn.prepareStatement("SELECT user_id, event_title FROM event_requests WHERE request_id = ?");
+        reqPs.setInt(1, requestId);
+        ResultSet reqRs = reqPs.executeQuery();
+        if (reqRs.next()) {
+            int customerId = reqRs.getInt("user_id");
+            String reqTitle = reqRs.getString("event_title");
+            NotificationDAO.createNotification(conn, customerId, "📝 New Quotation Received!", 
+                "An organizer submitted a quotation for '" + reqTitle + "' totaling ₹" + String.format("%.2f", totalAmount) + ". Click to view the proposal.", 
+                "proposal", "viewProposals.jsp?request_id=" + requestId);
+        }
+        reqRs.close();
+        reqPs.close();
+    } catch (Exception ignored) {}
 
     // Commit atomic transaction
     conn.commit();

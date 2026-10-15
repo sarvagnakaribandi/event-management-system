@@ -2,6 +2,7 @@
 <%@ page import="java.sql.*" %>
 <%@ page import="database.DBConnection" %>
 <%@ page import="database.SecurityUtil" %>
+<%@ page import="database.NotificationDAO" %>
 
 <%
 /* =====================================================
@@ -81,6 +82,27 @@ try {
         payPs = conn.prepareStatement(paySql);
         payPs.setInt(1, registrationId);
         payPs.executeUpdate();
+
+        /* =============================================
+           IN-APP NOTIFICATION (PHASE 7)
+           ============================================= */
+        try {
+            PreparedStatement findPs = conn.prepareStatement(
+                "SELECT r.user_id, e.event_name FROM registrations r " +
+                "JOIN events e ON r.event_id = e.event_id WHERE r.registration_id = ?"
+            );
+            findPs.setInt(1, registrationId);
+            ResultSet findRs = findPs.executeQuery();
+            if (findRs.next()) {
+                int participantId = findRs.getInt("user_id");
+                String eName = findRs.getString("event_name");
+                NotificationDAO.createNotification(conn, participantId, "💳 Payment Approved!", 
+                    "Your payment for '" + eName + "' was verified by the organizer. Your ticket is confirmed!", 
+                    "payment", "myRegistrations.jsp");
+            }
+            findRs.close();
+            findPs.close();
+        } catch (Exception ignored) {}
 
         conn.commit();
 

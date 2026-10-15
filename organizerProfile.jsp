@@ -88,6 +88,8 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organizer Profile & Verification | EventSphere</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/notifications.css">
+    <link rel="stylesheet" href="css/toast.css">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins', sans-serif; }
         body { background:#08101f; color:white; min-height:100vh; }
@@ -269,6 +271,7 @@ try {
         <a href="manageEvents.jsp">Manage Events</a>
         <a href="incomingRequests.jsp">Custom Requests</a>
         <a href="organizerProfile.jsp" class="active">My Profile</a>
+        <jsp:include page="navbarNotification.jsp" />
         <a href="logout.jsp" style="color:#ff7180;">Logout</a>
     </div>
 </div>
@@ -447,6 +450,8 @@ function handleFile(input, previewId, dataId, nameId) {
 }
 </script>
 
+<script src="js/toast.js"></script>
+<script src="js/notifications.js"></script>
 </body>
 </html>
 <%

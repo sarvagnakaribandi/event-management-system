@@ -2,6 +2,7 @@
 <%@ page import="java.sql.*" %>
 <%@ page import="database.DBConnection" %>
 <%@ page import="database.SecurityUtil" %>
+<%@ page import="database.NotificationDAO" %>
 
 <%
 /* =====================================================
@@ -46,7 +47,7 @@ try {
     // Verify ownership of the request for this proposal
     String verifySql =
         "SELECT p.proposal_id, p.request_id, p.organizer_id, p.total_amount, p.advance_amount, p.status AS prop_status, " +
-        "r.user_id, r.status AS req_status " +
+        "r.user_id, r.status AS req_status, r.event_title " +
         "FROM proposals p " +
         "JOIN event_requests r ON p.request_id = r.request_id " +
         "WHERE p.proposal_id = ? AND r.user_id = ?";
@@ -64,6 +65,7 @@ try {
 
     int requestId = verifyRs.getInt("request_id");
     int organizerId = verifyRs.getInt("organizer_id");
+    String eventTitle = verifyRs.getString("event_title");
     double totalAmount = verifyRs.getDouble("total_amount");
     double advanceAmount = verifyRs.getDouble("advance_amount");
     double remainingAmount = Math.max(0, totalAmount - advanceAmount);
@@ -108,6 +110,17 @@ try {
         updateReqPs.setInt(1, requestId);
         updateReqPs.executeUpdate();
 
+        // 5. In-App Notifications (Phase 7)
+        try {
+            NotificationDAO.createNotification(conn, organizerId, "🎉 Proposal Accepted!", 
+                "Great news! The customer accepted your proposal for '" + eventTitle + "' (Total: ₹" + String.format("%.2f", totalAmount) + ").", 
+                "proposal", "incomingRequests.jsp?tab=sent");
+
+            NotificationDAO.createNotification(conn, userId, "🎉 Custom Event Confirmed!", 
+                "You accepted the proposal for '" + eventTitle + "'. Your custom event booking is confirmed!", 
+                "proposal", "myRequests.jsp");
+        } catch (Exception ignored) {}
+
         conn.commit();
         response.sendRedirect("myRequests.jsp?msg=accepted");
         return;
@@ -116,6 +129,13 @@ try {
         rejectSinglePs = conn.prepareStatement("UPDATE proposals SET status = 'Rejected' WHERE proposal_id = ? AND status = 'Pending'");
         rejectSinglePs.setInt(1, proposalId);
         rejectSinglePs.executeUpdate();
+
+        // Notification to Organizer
+        try {
+            NotificationDAO.createNotification(conn, organizerId, "ℹ️ Proposal Declined", 
+                "The customer declined your quotation for '" + eventTitle + "'.", 
+                "proposal", "incomingRequests.jsp?tab=sent");
+        } catch (Exception ignored) {}
 
         conn.commit();
         response.sendRedirect("viewProposals.jsp?request_id=" + requestId + "&msg=rejected");

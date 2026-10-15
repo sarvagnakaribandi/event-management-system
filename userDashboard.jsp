@@ -61,6 +61,8 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Dashboard | EventSphere</title>
     <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/notifications.css">
+    <link rel="stylesheet" href="css/toast.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         .cat-card { cursor: pointer; user-select: none; transition: transform 0.2s, background 0.2s; }
@@ -85,6 +87,9 @@ try {
             <li><a href="#categories">Categories</a></li>
             <li><a href="myRequests.jsp">My Custom Requests</a></li>
             <li><a href="myRegistrations.jsp" style="color:#ffd35b; font-weight:600;">My Registrations</a></li>
+            <li>
+                <jsp:include page="navbarNotification.jsp" />
+            </li>
             <li><a href="logout.jsp" style="color:#ff7180;">Logout</a></li>
         </ul>
     </nav>
@@ -286,6 +291,8 @@ while(rs.next()){
 </footer>
 
 <script src="js/dashboard.js"></script>
+<script src="js/toast.js"></script>
+<script src="js/notifications.js"></script>
 </body>
 </html>
 <%

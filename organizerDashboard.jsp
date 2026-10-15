@@ -67,6 +67,8 @@ if(rsVerif.next() && rsVerif.getString(1) != null) verifStatus = rsVerif.getStri
 
 <link rel="stylesheet"
 href="css/organizerDashboard.css">
+<link rel="stylesheet" href="css/notifications.css">
+<link rel="stylesheet" href="css/toast.css">
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
 rel="stylesheet">
@@ -135,6 +137,10 @@ My Profile & Trust
 
 </a>
 
+</li>
+
+<li>
+    <jsp:include page="navbarNotification.jsp" />
 </li>
 
 <li>
@@ -393,6 +399,8 @@ Designed for College Event Management
 </footer>
 
 <script src="js/organizerDashboard.js"></script>
+<script src="js/toast.js"></script>
+<script src="js/notifications.js"></script>
 
 <%
 DBConnection.close(recentRs, rs1, rs2, rs3, rs4, rsVerif, recentStmt, ps1, ps2, ps3, ps4, psVerif, conn);

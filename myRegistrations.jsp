@@ -63,6 +63,8 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Registrations | EventSphere</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/notifications.css">
+    <link rel="stylesheet" href="css/toast.css">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins', sans-serif; }
         body { background:#08101f; color:white; min-height:100vh; }
@@ -227,6 +229,7 @@ try {
         <a href="userDashboard.jsp">Dashboard</a>
         <a href="myRequests.jsp">My Custom Requests</a>
         <a href="myRegistrations.jsp" class="active">My Registrations</a>
+        <jsp:include page="navbarNotification.jsp" />
         <a href="logout.jsp" style="color:#ff7180;">Logout</a>
     </div>
 </div>
@@ -384,6 +387,8 @@ try {
 
 </div>
 
+<script src="js/toast.js"></script>
+<script src="js/notifications.js"></script>
 </body>
 </html>
 <%

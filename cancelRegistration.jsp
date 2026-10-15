@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*" %>
 <%@ page import="database.DBConnection" %>
+<%@ page import="database.NotificationDAO" %>
 
 <%
 /* =====================================================
@@ -39,7 +40,7 @@ try {
 
     // Verify registration ownership and event status
     String checkSql = 
-        "SELECT r.registration_id, r.event_id, e.event_name, e.event_date " +
+        "SELECT r.registration_id, r.event_id, e.event_name, e.event_date, e.organizer_id " +
         "FROM registrations r " +
         "INNER JOIN events e ON r.event_id = e.event_id " +
         "WHERE r.registration_id = ? AND r.user_id = ?";
@@ -56,6 +57,8 @@ try {
     }
 
     int eventId = checkRs.getInt("event_id");
+    int organizerId = checkRs.getInt("organizer_id");
+    String eventName = checkRs.getString("event_name");
     Date eventDate = checkRs.getDate("event_date");
     Date today = new Date(System.currentTimeMillis());
 
@@ -86,6 +89,17 @@ try {
         );
         incSeatPs.setInt(1, eventId);
         incSeatPs.executeUpdate();
+
+        // 4. In-App Notifications (Phase 7)
+        NotificationDAO.createNotification(conn, userId, "🎟️ Booking Cancelled", 
+            "Your registration for '" + eventName + "' was cancelled. The reserved seat has been released.", 
+            "booking", "browseEvents.jsp");
+
+        if (organizerId > 0) {
+            NotificationDAO.createNotification(conn, organizerId, "ℹ️ Registration Cancelled", 
+                "A participant cancelled their registration for '" + eventName + "'. Seat capacity restored.", 
+                "booking", "viewParticipants.jsp?id=" + eventId);
+        }
     }
 
     conn.commit();

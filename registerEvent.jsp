@@ -8,6 +8,7 @@
 <%@ page import="java.util.Base64" %>
 <%@ page import="database.DBConnection" %>
 <%@ page import="database.SecurityUtil" %>
+<%@ page import="database.NotificationDAO" %>
 
 <%
 /* =====================================================
@@ -162,7 +163,7 @@ try{
 
     eventPs =
         conn.prepareStatement(
-            "SELECT event_id, event_name, payment_type, event_fee, available_seats, event_date, registration_deadline " +
+            "SELECT event_id, event_name, payment_type, event_fee, available_seats, event_date, registration_deadline, organizer_id " +
             "FROM events WHERE event_id=?"
         );
 
@@ -180,6 +181,8 @@ try{
         );
         return;
     }
+
+    int organizerId = eventRs.getInt("organizer_id");
 
     String eventName =
         eventRs.getString("event_name");
@@ -509,6 +512,23 @@ a{
     payPs.setString(5, transactionId);
     payPs.executeUpdate();
     payPs.close();
+
+    // 4. In-App Notifications (Phase 7)
+    if ("Pending".equalsIgnoreCase(paymentStatus)) {
+        NotificationDAO.createNotification(conn, userId, "⏳ Payment Under Review", 
+            "Your registration for '" + eventName + "' has been submitted and is awaiting organizer payment approval.", 
+            "payment", "myRegistrations.jsp");
+    } else {
+        NotificationDAO.createNotification(conn, userId, "🎟️ Registration Confirmed!", 
+            "Your booking for '" + eventName + "' is confirmed. Access your ticket from My Registrations.", 
+            "booking", "myRegistrations.jsp");
+    }
+
+    if (organizerId > 0) {
+        NotificationDAO.createNotification(conn, organizerId, "🎟️ New Registration", 
+            fullName + " registered for your event '" + eventName + "'.", 
+            "booking", "viewParticipants.jsp?event_id=" + eventIdInt);
+    }
 
     // Commit atomic transaction
     conn.commit();

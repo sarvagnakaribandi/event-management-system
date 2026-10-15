@@ -2,6 +2,7 @@
 <%@ page import="java.sql.*" %>
 <%@ page import="database.DBConnection" %>
 <%@ page import="database.SecurityUtil" %>
+<%@ page import="database.NotificationDAO" %>
 
 <%
 /* =====================================================
@@ -50,18 +51,33 @@ try {
         ps.setInt(1, organizerId);
         ps.executeUpdate();
 
+        // Notification (Phase 7)
+        try {
+            NotificationDAO.createNotification(conn, organizerId, "🛡️ Organizer Verified!", 
+                "Congratulations! Your organizer credentials have been approved by the administrator. The Verified badge is now active on your public profile and events.", 
+                "verification", "organizerProfile.jsp");
+        } catch (Exception ignored) {}
+
         response.sendRedirect("adminVerifications.jsp?msg=approved");
         return;
 
     } else if ("reject".equalsIgnoreCase(action)) {
+        String fallbackReason = (reason != null && !reason.trim().isEmpty()) ? reason.trim() : "Documentation insufficient or unverified.";
         String sql =
             "UPDATE organizer_profiles " +
             "SET verification_status = 'Rejected', rejection_reason = ?, verified_at = NULL " +
             "WHERE organizer_id = ?";
         ps = conn.prepareStatement(sql);
-        ps.setString(1, (reason != null && !reason.trim().isEmpty()) ? reason.trim() : "Documentation insufficient or unverified.");
+        ps.setString(1, fallbackReason);
         ps.setInt(2, organizerId);
         ps.executeUpdate();
+
+        // Notification (Phase 7)
+        try {
+            NotificationDAO.createNotification(conn, organizerId, "⚠️ Verification Review Update", 
+                "Your verification request was rejected. Reason: " + fallbackReason + ". You may review the requirements and submit updated documentation.", 
+                "verification", "organizerProfile.jsp");
+        } catch (Exception ignored) {}
 
         response.sendRedirect("adminVerifications.jsp?msg=rejected");
         return;

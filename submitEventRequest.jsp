@@ -2,6 +2,7 @@
 <%@ page import="java.sql.*" %>
 <%@ page import="database.DBConnection" %>
 <%@ page import="database.SecurityUtil" %>
+<%@ page import="database.NotificationDAO" %>
 
 <%
 /* =====================================================
@@ -90,6 +91,24 @@ try {
     int result = ps.executeUpdate();
 
     if (result > 0) {
+        // Notifications (Phase 7)
+        try {
+            NotificationDAO.createNotification(conn, userId, "🎪 Custom Event Request Posted", 
+                "Your request for '" + eventTitle + "' was posted successfully. Organizers will review and submit quotations.", 
+                "proposal", "myRequests.jsp");
+
+            Statement orgSt = conn.createStatement();
+            ResultSet orgRs = orgSt.executeQuery("SELECT id FROM users WHERE role='Organizer'");
+            while (orgRs.next()) {
+                int orgId = orgRs.getInt("id");
+                NotificationDAO.createNotification(conn, orgId, "🎪 New Custom Event Request", 
+                    "A customer posted a custom request for '" + eventTitle + "' (Budget: ₹" + budget + "). Review and submit a quotation!", 
+                    "proposal", "incomingRequests.jsp");
+            }
+            orgRs.close();
+            orgSt.close();
+        } catch (Exception ignored) {}
+
         response.sendRedirect("myRequests.jsp?msg=created");
         return;
     } else {

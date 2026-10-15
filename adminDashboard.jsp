@@ -94,6 +94,8 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administrator Control Panel | EventSphere</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/notifications.css">
+    <link rel="stylesheet" href="css/toast.css">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins', sans-serif; }
         body { background:#070d18; color:white; min-height:100vh; }
@@ -264,6 +266,7 @@ try {
         </a>
         <a href="adminUsers.jsp">Manage Users</a>
         <a href="adminEvents.jsp">Manage Events</a>
+        <jsp:include page="navbarNotification.jsp" />
         <a href="logout.jsp" style="color:#ff7180;">Logout</a>
     </div>
 </div>
@@ -479,6 +482,8 @@ try {
 
 </div>
 
+<script src="js/toast.js"></script>
+<script src="js/notifications.js"></script>
 </body>
 </html>
 <%
