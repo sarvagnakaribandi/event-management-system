@@ -300,6 +300,14 @@ Quick Actions
 
 </a>
 
+<a href="manageEvents.jsp" class="quick-card">
+
+<h3>📲</h3>
+
+<p>Gate QR Scanner</p>
+
+</a>
+
 </div>
 
 </section>
@@ -350,6 +358,16 @@ while(recentRs.next())
         <p>📍 <%=recentRs.getString("venue")%></p>
 
         <div class="card-buttons">
+
+            <a href="gateScanner.jsp?id=<%=recentRs.getInt("event_id")%>"
+               style="background:#0d9488; color:white; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:12px; font-weight:600;">
+               📲 Gate
+            </a>
+
+            <a href="viewParticipants.jsp?id=<%=recentRs.getInt("event_id")%>"
+               style="background:#4f46e5; color:white; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:12px; font-weight:600;">
+               👥 Roster
+            </a>
 
             <a href="editEvent.jsp?id=<%=recentRs.getInt("event_id")%>"
                class="edit-btn">

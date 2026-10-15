@@ -39,6 +39,10 @@ try {
         "r.full_name, " +
         "r.team_name, " +
         "r.team_members, " +
+        "r.ticket_token, " +
+        "r.check_in_status, " +
+        "r.checked_in_at, " +
+        "r.certificate_id, " +
         "e.event_name, " +
         "e.category, " +
         "e.event_date, " +
@@ -157,6 +161,38 @@ try {
             transition:0.3s;
         }
         .btn-view:hover { opacity:0.9; transform:translateY(-2px); }
+
+        .btn-ticket {
+            padding:11px 20px;
+            border-radius:10px;
+            text-decoration:none;
+            color:white;
+            font-weight:600;
+            font-size:14px;
+            background:linear-gradient(135deg, #0ea5e9, #0284c7);
+            box-shadow:0 4px 15px rgba(14, 165, 233, 0.3);
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            transition:0.3s;
+        }
+        .btn-ticket:hover { opacity:0.95; transform:translateY(-2px); box-shadow:0 6px 20px rgba(14, 165, 233, 0.45); }
+
+        .btn-cert {
+            padding:11px 20px;
+            border-radius:10px;
+            text-decoration:none;
+            color:#1e1b4b;
+            font-weight:700;
+            font-size:14px;
+            background:linear-gradient(135deg, #fbbf24, #d97706);
+            box-shadow:0 4px 15px rgba(245, 158, 11, 0.35);
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            transition:0.3s;
+        }
+        .btn-cert:hover { opacity:0.95; transform:translateY(-2px); box-shadow:0 6px 20px rgba(245, 158, 11, 0.5); }
 
         .btn-cancel {
             padding:11px 22px;
@@ -283,6 +319,12 @@ try {
         String paymentMethod = rs.getString("payment_method");
         String transactionId = rs.getString("transaction_id");
         String banner = rs.getString("banner_image");
+        String ticketToken = rs.getString("ticket_token");
+        String checkInStatus = rs.getString("check_in_status");
+        Timestamp checkedInAt = rs.getTimestamp("checked_in_at");
+        String certificateId = rs.getString("certificate_id");
+        boolean isCheckedIn = "Checked In".equalsIgnoreCase(checkInStatus);
+        boolean isApproved = "Approved".equalsIgnoreCase(paymentStatus) || "Not Required".equalsIgnoreCase(paymentStatus);
 
         boolean isPast = eventDate != null && eventDate.before(today);
 
@@ -322,6 +364,11 @@ try {
             <div class="meta-tags">
                 <span class="category-badge"><%= SecurityUtil.escapeHtml(category != null ? category : "General") %></span>
                 <span class="status-badge <%= statusClass %>"><%= statusLabel %></span>
+                <% if(isCheckedIn) { %>
+                    <span class="status-badge" style="background:#064e3b; color:#34d399; border:1px solid #059669;">✓ Gate Checked In</span>
+                <% } else if(isApproved) { %>
+                    <span class="status-badge" style="background:rgba(14, 165, 233, 0.15); color:#38bdf8; border:1px solid #0284c7;">🎟️ Gate Ready</span>
+                <% } %>
                 <% if(isPast) { %>
                     <span class="status-badge" style="background:#1e293b; color:#94a3b8; border:1px solid #475569;">Past Event</span>
                 <% } %>
@@ -357,15 +404,27 @@ try {
             </div>
 
             <div class="actions">
-                <a href="eventDetails.jsp?id=<%= eventId %>" class="btn-view">👁 View Event Details</a>
+                <a href="eventDetails.jsp?id=<%= eventId %>" class="btn-view">👁 View Details</a>
 
-                <% if(!isPast) { %>
+                <% if(isApproved) { %>
+                    <a href="viewTicket.jsp?id=<%= regId %>" class="btn-ticket">
+                        🎟️ E-Ticket Pass
+                    </a>
+                <% } %>
+
+                <% if(isCheckedIn) { %>
+                    <a href="certificate.jsp?id=<%= regId %>" target="_blank" class="btn-cert">
+                        🎓 View Certificate
+                    </a>
+                <% } %>
+
+                <% if(!isPast && !isCheckedIn) { %>
                     <form action="cancelRegistration.jsp" method="post" style="display:inline;" 
                           onsubmit="return confirm('Are you sure you want to cancel your registration for <%= SecurityUtil.escapeHtml(eventName) %>?\n\nYour seat will be released immediately and this action cannot be undone.');">
                         <input type="hidden" name="registration_id" value="<%= regId %>">
-                        <button type="submit" class="btn-cancel">❌ Cancel Registration</button>
+                        <button type="submit" class="btn-cancel">❌ Cancel</button>
                     </form>
-                <% } else { %>
+                <% } else if(isPast) { %>
                     <span class="badge-completed">Event Completed</span>
                 <% } %>
             </div>

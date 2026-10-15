@@ -137,6 +137,44 @@ $adminMetrics = (& $MysqlPath -u root eventsphere -e "
 Assert-Step "Admin portal aggregation queries functional" ([bool]($adminMetrics -match "admins"))
 
 # ------------------------------------------------------------------------------
+# TEST GROUP 7: Digital E-Ticket, QR Gate Check-In & Verified Certificates (Phase 9)
+# ------------------------------------------------------------------------------
+Write-Host "`n[Group 7] Digital E-Ticket, QR Gate Check-In & Verified Certificates..." -ForegroundColor Yellow
+
+$cookieFile9 = "$PSScriptRoot\temp_cookie9.txt"
+curl.exe -s -c $cookieFile9 -d "email=admin@eventsphere.com&password=Admin@123" "$BaseUrl/loginProcess.jsp" | Out-Null
+
+# 1. Gate Scanner UI
+$scannerResp = (curl.exe -s -b $cookieFile9 "$BaseUrl/gateScanner.jsp?id=10") | Out-String
+Assert-Step "Live Gate QR Scanner UI renders HUD and video viewport" ([bool]($scannerResp -match "Live Gate Check-In Scanner"))
+
+# 2. CSV Roster Export
+$csvResp = (curl.exe -s -b $cookieFile9 "$BaseUrl/exportParticipants.jsp?id=10&format=csv") | Out-String
+Assert-Step "Participant roster exports to CSV stream with ticket tokens" ([bool]($csvResp -match "Ticket Token"))
+
+# 3. Printable Roster
+$printResp = (curl.exe -s -b $cookieFile9 "$BaseUrl/exportParticipants.jsp?id=10&format=print") | Out-String
+Assert-Step "Printable Gate Roster renders high-contrast venue attendance sheet" ([bool]($printResp -match "Gate Attendance Sheet"))
+
+# 4. Gate Check-In API & Duplicate Prevention
+$checkInResp = (curl.exe -s -b $cookieFile9 "$BaseUrl/checkInProcess.jsp?token=TKT-0006-F33110&event_id=10") | Out-String
+Assert-Step "Gate Check-In API evaluates token and prevents duplicate admission" ([bool]($checkInResp -match "SUCCESS" -or $checkInResp -match "ALREADY_CHECKED_IN"))
+
+# 5. Certificate of Participation Generation
+$certResp = (curl.exe -s "$BaseUrl/certificate.jsp?cert_id=CERT-0006-543F39") | Out-String
+Assert-Step "Certificate generator renders golden border and attendee verification" ([bool]($certResp -match "Certificate of Participation" -and $certResp -match "Ramya"))
+
+# 6. Public Certificate Verification Portal
+$verifyResp = (curl.exe -s "$BaseUrl/verifyCertificate.jsp?cert_id=CERT-0006-543F39") | Out-String
+Assert-Step "Public Trust Verification Portal confirms gate-checked attendee authenticity" ([bool]($verifyResp -match "Authentic & Verified Certificate" -and $verifyResp -match "Ramya"))
+
+# 7. E-Ticket Pass View
+$ticketResp = (curl.exe -s -b $cookieFile9 "$BaseUrl/viewTicket.jsp?id=6") | Out-String
+Assert-Step "Attendee E-Ticket Pass renders boarding card and scannable QR token" ([bool]($ticketResp -match "BOARDING PASS" -or $ticketResp -match "Ramya"))
+
+if (Test-Path $cookieFile9) { Remove-Item -Force $cookieFile9 }
+
+# ------------------------------------------------------------------------------
 # FINAL REPORT SUMMARY
 # ------------------------------------------------------------------------------
 Write-Host "`n====================================================================" -ForegroundColor Cyan

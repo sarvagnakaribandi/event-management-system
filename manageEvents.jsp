@@ -844,6 +844,15 @@ while(rs.next()){
 
                     </a>
 
+                    <a
+                        href="gateScanner.jsp?id=<%=rs.getInt("event_id")%>"
+                        class="scanner-btn"
+                        style="background:#0d9488; color:white;">
+
+                        📲 Gate Scan
+
+                    </a>
+
 
                     <a
                         href="deleteEvent.jsp?id=<%=rs.getInt("event_id")%>"

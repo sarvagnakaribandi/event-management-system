@@ -106,7 +106,8 @@ try {
         "SELECT " +
         "registration_id, full_name, email, phone, gender, " +
         "team_name, team_members, registration_date, " +
-        "payment_status, payment_screenshot, payment_method, transaction_id " +
+        "payment_status, payment_screenshot, payment_method, transaction_id, " +
+        "ticket_token, check_in_status, checked_in_at, certificate_id " +
         "FROM registrations " +
         "WHERE event_id=? " +
         "ORDER BY registration_id DESC";
@@ -351,6 +352,17 @@ try {
                 <span>🪑 Capacity: <%= (maxCapacity - availableSeats) %> / <%= maxCapacity %> Booked (<%= availableSeats %> Left)</span>
             </div>
         </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <a href="gateScanner.jsp?id=<%= eventId %>" style="display:inline-flex; align-items:center; gap:8px; padding:11px 20px; border-radius:10px; background:linear-gradient(135deg, #10b981, #059669); color:white; font-weight:600; font-size:14px; text-decoration:none; box-shadow:0 4px 15px rgba(16,185,129,0.35);">
+                📲 Live Gate Scanner
+            </a>
+            <a href="exportParticipants.jsp?id=<%= eventId %>&format=csv" style="display:inline-flex; align-items:center; gap:8px; padding:11px 18px; border-radius:10px; background:#1e293b; border:1px solid #334155; color:#cbd5e1; font-weight:600; font-size:14px; text-decoration:none;">
+                📊 Export CSV
+            </a>
+            <a href="exportParticipants.jsp?id=<%= eventId %>&format=print" target="_blank" style="display:inline-flex; align-items:center; gap:8px; padding:11px 18px; border-radius:10px; background:#1e293b; border:1px solid #334155; color:#cbd5e1; font-weight:600; font-size:14px; text-decoration:none;">
+                📋 Print Roster
+            </a>
+        </div>
     </div>
 
     <!-- Feedback messages -->
@@ -377,6 +389,7 @@ try {
                     <th>Registered On</th>
                     <th>Payment Details</th>
                     <th>Status</th>
+                    <th>Gate Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -397,6 +410,11 @@ try {
                 String screenshot = participantRs.getString("payment_screenshot");
                 String payMethod = participantRs.getString("payment_method");
                 String txnId = participantRs.getString("transaction_id");
+                String ticketToken = participantRs.getString("ticket_token");
+                String checkInStatus = participantRs.getString("check_in_status");
+                Timestamp checkedInAt = participantRs.getTimestamp("checked_in_at");
+                String certId = participantRs.getString("certificate_id");
+                boolean checkedIn = "Checked In".equalsIgnoreCase(checkInStatus);
 
                 String badgeClass = "badge-pending";
                 String badgeText = "🟡 Pending";
@@ -432,10 +450,32 @@ try {
                         <span class="badge <%= badgeClass %>"><%= badgeText %></span>
                     </td>
                     <td>
+                        <% if (checkedIn) { %>
+                            <span class="badge" style="background:#064e3b; color:#34d399; border:1px solid #059669; font-size:11px;">✓ Checked In</span>
+                            <% if (checkedInAt != null) { %>
+                                <small style="color:#64748b; font-size:10px; display:block; margin-top:2px;"><%= checkedInAt.toString().substring(11, 19) %></small>
+                            <% } %>
+                        <% } else { %>
+                            <span class="badge" style="background:#1e293b; color:#94a3b8; border:1px solid #334155; font-size:11px;">Awaiting</span>
+                        <% } %>
+                    </td>
+                    <td>
                         <div class="actions-cell">
                             <% if (screenshot != null && !screenshot.trim().isEmpty()) { %>
                                 <a href="images/<%= SecurityUtil.escapeHtml(screenshot.trim()) %>" target="_blank" class="btn-action btn-proof" title="View payment proof screenshot">
                                     🧾 Proof
+                                </a>
+                            <% } %>
+
+                            <% if ("Approved".equalsIgnoreCase(payStatus) || "Not Required".equalsIgnoreCase(payStatus)) { %>
+                                <a href="viewTicket.jsp?id=<%= regId %>" target="_blank" class="btn-action" style="background:#0284c7; color:white;" title="View E-Ticket">
+                                    🎟️ Pass
+                                </a>
+                            <% } %>
+
+                            <% if (checkedIn) { %>
+                                <a href="certificate.jsp?id=<%= regId %>" target="_blank" class="btn-action" style="background:#d97706; color:white;" title="View Certificate">
+                                    🎓 Cert
                                 </a>
                             <% } %>
 

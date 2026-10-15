@@ -451,13 +451,17 @@ a{
         return;
     }
 
+    String ticketToken = "TKT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    String certificateId = "CERT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
     // 2. Insert into registrations table
     String sql =
         "INSERT INTO registrations (" +
         "user_id, event_id, full_name, email, phone, gender, date_of_birth, " +
         "city, state, country, emergency_contact, team_name, team_members, " +
-        "special_requirements, payment_status, payment_screenshot, payment_method, transaction_id" +
-        ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        "special_requirements, payment_status, payment_screenshot, payment_method, transaction_id, " +
+        "ticket_token, check_in_status, certificate_id" +
+        ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'Not Checked In', ?)";
 
     insertPs = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
     insertPs.setInt(1, userId);
@@ -490,6 +494,8 @@ a{
 
     insertPs.setString(17, paymentMethod);
     insertPs.setString(18, transactionId);
+    insertPs.setString(19, ticketToken);
+    insertPs.setString(20, certificateId);
 
     int regResult = insertPs.executeUpdate();
 
