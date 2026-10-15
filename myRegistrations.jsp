@@ -410,6 +410,9 @@ try {
                     <a href="viewTicket.jsp?id=<%= regId %>" class="btn-ticket">
                         🎟️ E-Ticket Pass
                     </a>
+                    <a href="eventDetails.jsp?id=<%= eventId %>#reviews" style="padding:11px 18px; border-radius:10px; text-decoration:none; color:#fef08a; background:rgba(234,179,8,0.15); border:1px solid #ca8a04; font-weight:600; font-size:14px; display:inline-flex; align-items:center; gap:6px; transition:0.2s;">
+                        ⭐ Rate Event
+                    </a>
                 <% } %>
 
                 <% if(isCheckedIn) { %>
