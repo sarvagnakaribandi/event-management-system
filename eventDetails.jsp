@@ -604,6 +604,140 @@ try{
         </div>
     </div>
 
+    <!-- =====================================================
+         PHASE 10: ATTENDEE REVIEWS & RATINGS SECTION
+         ===================================================== -->
+    <div class="reviews-container" id="reviews">
+        <div class="reviews-header-line">
+            <h2>⭐ Attendee Ratings & Reviews</h2>
+            <% if (totalReviews > 0) { %>
+                <span style="color:#94a3b8; font-size:14px;"><%= totalReviews %> verified attendee review<%= totalReviews > 1 ? "s" : "" %></span>
+            <% } %>
+        </div>
+
+        <!-- Summary Row -->
+        <div class="reviews-summary">
+            <div class="rating-score-box">
+                <div class="score-num"><%= totalReviews > 0 ? String.format("%.1f", avgRating) : "-" %></div>
+                <div class="stars-row">
+                    <%
+                    int fullStars = (int) Math.round(avgRating);
+                    for (int s = 1; s <= 5; s++) {
+                        if (s <= fullStars) {
+                            out.print("★");
+                        } else {
+                            out.print("<span style='color:#475569;'>★</span>");
+                        }
+                    }
+                    %>
+                </div>
+                <div style="font-size:12px; color:#94a3b8; margin-top:4px;">
+                    <%= totalReviews > 0 ? ("Based on " + totalReviews + " review" + (totalReviews > 1 ? "s" : "")) : "No reviews yet" %>
+                </div>
+            </div>
+
+            <!-- Breakdown Bars -->
+            <div>
+                <%
+                for (int star = 5; star >= 1; star--) {
+                    int cnt = starCounts[star];
+                    int pct = totalReviews > 0 ? (int) Math.round((cnt * 100.0) / totalReviews) : 0;
+                %>
+                <div class="breakdown-row">
+                    <span style="width: 35px; font-weight:600;"><%= star %> ★</span>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: <%= pct %>%;"></div>
+                    </div>
+                    <span style="width: 45px; text-align:right; font-size:12px;"><%= cnt %> (<%= pct %>%)</span>
+                </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Review Form (For Verified Attendees) -->
+        <% if (alreadyRegistered) { %>
+            <div class="review-form-card">
+                <h3 style="color:#fff; font-size:17px; margin-bottom:8px;">
+                    <%= hasReviewed ? "✏️ Edit Your Verified Review" : "⭐ Leave a Verified Attendee Review" %>
+                </h3>
+                <p style="color:#94a3b8; font-size:13px; margin-bottom:15px;">
+                    Share your experience to help future attendees and assist the organizer in improving their event.
+                </p>
+
+                <form action="submitReview.jsp" method="POST">
+                    <input type="hidden" name="event_id" value="<%= eventId %>">
+                    <input type="hidden" name="rating" id="ratingInput" value="<%= myRating > 0 ? myRating : 5 %>">
+
+                    <label style="font-size:13px; color:#cbd5e1; font-weight:500;">Your Overall Rating:</label>
+                    <div class="star-rating-select" id="starSelector">
+                        <% for (int i = 1; i <= 5; i++) { %>
+                            <span class="star-item <%= i <= (myRating > 0 ? myRating : 5) ? "active" : "" %>" onclick="setRating(<%= i %>)">★</span>
+                        <% } %>
+                    </div>
+
+                    <input type="text" name="review_title" class="review-input" placeholder="Title of your review (e.g. Excellent workshop and great networking!)" value="<%= SecurityUtil.escapeHtml(myReviewTitle) %>" required>
+
+                    <textarea name="review_text" class="review-input" rows="4" placeholder="What did you like or think could be improved? (Venue, content, organization, etc.)" required><%= SecurityUtil.escapeHtml(myReviewText) %></textarea>
+
+                    <button type="submit" class="btn-submit-review">
+                        <%= hasReviewed ? "Update My Review" : "Publish Verified Review" %>
+                    </button>
+                </form>
+            </div>
+        <% } else if (currentUserId != null) { %>
+            <div style="text-align:center; padding:18px; margin-bottom:25px; color:#94a3b8; font-size:13px; background:rgba(255,255,255,0.02); border-radius:12px; border:1px dashed rgba(255,255,255,0.1);">
+                🔒 <strong>Verified Attendee Reviews:</strong> Only attendees with confirmed bookings can write reviews for this event.
+            </div>
+        <% } else { %>
+            <div style="text-align:center; padding:18px; margin-bottom:25px; color:#94a3b8; font-size:13px; background:rgba(255,255,255,0.02); border-radius:12px; border:1px dashed rgba(255,255,255,0.1);">
+                <a href="login.jsp" style="color:#818cf8; font-weight:600; text-decoration:none;">Log in</a> to write a review if you are a registered participant.
+            </div>
+        <% } %>
+
+        <!-- Reviews List -->
+        <div class="reviews-list">
+            <%
+            boolean hasReviewRows = false;
+            while (rsReviewsList.next()) {
+                hasReviewRows = true;
+                String revName = rsReviewsList.getString("reviewer_name");
+                int revScore = rsReviewsList.getInt("rating");
+                String revTitle = rsReviewsList.getString("review_title");
+                String revBody = rsReviewsList.getString("review_text");
+                Timestamp revDate = rsReviewsList.getTimestamp("created_at");
+                String checkIn = rsReviewsList.getString("check_in_status");
+                boolean gateChecked = "Checked In".equalsIgnoreCase(checkIn);
+            %>
+            <div class="review-item">
+                <div class="review-user-line">
+                    <div>
+                        <span class="reviewer-name"><%= SecurityUtil.escapeHtml(revName) %></span>
+                        <span class="verified-attendee-tag">
+                            ✓ Verified Attendee <%= gateChecked ? "• Gate Attended" : "" %>
+                        </span>
+                    </div>
+                    <span class="review-date"><%= revDate != null ? new java.text.SimpleDateFormat("MMM dd, yyyy").format(revDate) : "" %></span>
+                </div>
+
+                <div style="color:#fbbf24; font-size:14px; margin-bottom:4px;">
+                    <% for (int s = 1; s <= 5; s++) { %>
+                        <%= s <= revScore ? "★" : "<span style='color:#475569;'>★</span>" %>
+                    <% } %>
+                    <strong style="color:#fff; font-size:14px; margin-left:6px;"><%= SecurityUtil.escapeHtml(revTitle) %></strong>
+                </div>
+
+                <p class="review-text-body"><%= SecurityUtil.escapeHtml(revBody) %></p>
+            </div>
+            <% } %>
+
+            <% if (!hasReviewRows) { %>
+                <div style="text-align:center; padding:40px 20px; color:#94a3b8; font-size:14px;">
+                    🌟 Be the first verified attendee to rate and review this event!
+                </div>
+            <% } %>
+        </div>
+    </div>
+
     <!-- Booking / Action Section -->
     <div class="register-section" style="text-align:center; padding: 40px 0;">
         <% if(alreadyRegistered) { %>
@@ -634,6 +768,19 @@ try{
     </div>
 </div>
 
+<script>
+function setRating(val) {
+    document.getElementById('ratingInput').value = val;
+    const stars = document.querySelectorAll('#starSelector .star-item');
+    stars.forEach((s, idx) => {
+        if (idx < val) {
+            s.classList.add('active');
+        } else {
+            s.classList.remove('active');
+        }
+    });
+}
+</script>
 </body>
 </html>
 
@@ -645,6 +792,8 @@ try{
 } catch(Exception e) {
     out.println("<h3 style='color:red;'>Error : " + SecurityUtil.escapeHtml(e.getMessage()) + "</h3>");
 } finally {
+    DBConnection.close(rsReviewsList);
+    DBConnection.close(psReviewsList);
     DBConnection.close(regCheckRs);
     DBConnection.close(regCheckPs);
     DBConnection.close(rs);
