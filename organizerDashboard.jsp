@@ -140,6 +140,16 @@ My Profile & Trust
 </li>
 
 <li>
+
+<a href="organizerAnalytics.jsp">
+
+📊 Analytics & Reviews
+
+</a>
+
+</li>
+
+<li>
     <jsp:include page="navbarNotification.jsp" />
 </li>
 
@@ -211,6 +221,12 @@ organized from one dashboard.
 <a href="organizerProfile.jsp" style="background:#202e48; border:1px solid #3d5175;">
 
 🛡️ Trust & Verification
+
+</a>
+
+<a href="organizerAnalytics.jsp" style="background:#0284c7; border:1px solid #0369a1;">
+
+📊 Analytics & Reviews
 
 </a>
 
@@ -305,6 +321,14 @@ Quick Actions
 <h3>📲</h3>
 
 <p>Gate QR Scanner</p>
+
+</a>
+
+<a href="organizerAnalytics.jsp" class="quick-card">
+
+<h3>📊</h3>
+
+<p>Analytics & Reviews</p>
 
 </a>
 

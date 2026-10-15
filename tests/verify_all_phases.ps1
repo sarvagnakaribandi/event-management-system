@@ -175,6 +175,38 @@ Assert-Step "Attendee E-Ticket Pass renders boarding card and scannable QR token
 if (Test-Path $cookieFile9) { Remove-Item -Force $cookieFile9 }
 
 # ------------------------------------------------------------------------------
+# TEST GROUP 8: Attendee Ratings & Reviews Engine + Organizer Analytics (Phase 10)
+# ------------------------------------------------------------------------------
+Write-Host "`n[Group 8] Attendee Ratings & Reviews Engine + Organizer Analytics..." -ForegroundColor Yellow
+
+$cookieUser10 = "$PSScriptRoot\temp_user10.txt"
+$cookieOrg10 = "$PSScriptRoot\temp_org10.txt"
+
+# 1. Attendee login (qwe@gmail.com / qwe)
+curl.exe -s -c $cookieUser10 -d "email=qwe@gmail.com&password=qwe" "$BaseUrl/loginProcess.jsp" | Out-Null
+
+# 2. Submit Review
+$revResp = (curl.exe -s -b $cookieUser10 -d "event_id=10&rating=5&review_title=Outstanding+Experience&review_text=Great+hands-on+coding+challenges+and+smooth+event+management.&format=json" "$BaseUrl/submitReview.jsp") | Out-String
+Assert-Step "Attendee review submission API returns success JSON" ([bool]($revResp -match '"success":\s*true'))
+
+# 3. Verify Review on Event Details
+$detailsResp = (curl.exe -s -b $cookieUser10 "$BaseUrl/eventDetails.jsp?id=10") | Out-String
+Assert-Step "Event Details renders social proof rating breakdown and verified review" ([bool]($detailsResp -match "Outstanding Experience" -and $detailsResp -match "Verified Attendee"))
+
+# 4. Star Rating Badge on Browse Feed
+$indexResp = (curl.exe -s "$BaseUrl/index.jsp") | Out-String
+Assert-Step "Discovery Feed renders star rating badge on event card" ([bool]($indexResp -match "badge-star-rating" -or $indexResp -match "5.0"))
+
+# 5. Organizer Login & Analytics Dashboard
+curl.exe -s -c $cookieOrg10 -d "email=klo@sasi.ac.in&password=klo" "$BaseUrl/loginProcess.jsp" | Out-Null
+$analyticsResp = (curl.exe -s -b $cookieOrg10 "$BaseUrl/organizerAnalytics.jsp") | Out-String
+Assert-Step "Organizer Analytics renders confirmed revenue KPIs and attendance rate" ([bool]($analyticsResp -match "Confirmed Revenue" -and $analyticsResp -match "Gate Check-In Rate"))
+Assert-Step "Organizer Analytics displays recent attendee reviews feed" ([bool]($analyticsResp -match "Outstanding Experience"))
+
+if (Test-Path $cookieUser10) { Remove-Item -Force $cookieUser10 }
+if (Test-Path $cookieOrg10) { Remove-Item -Force $cookieOrg10 }
+
+# ------------------------------------------------------------------------------
 # FINAL REPORT SUMMARY
 # ------------------------------------------------------------------------------
 Write-Host "`n====================================================================" -ForegroundColor Cyan

@@ -19,18 +19,21 @@ try {
     conn = DBConnection.getConnection();
     
     StringBuilder sql = new StringBuilder(
-        "SELECT event_id, event_name, subtitle, category, event_date, event_time, venue, banner_image, payment_type, event_fee, available_seats, max_capacity, registration_deadline " +
-        "FROM events WHERE 1=1 "
+        "SELECT e.event_id, e.event_name, e.subtitle, e.category, e.event_date, e.event_time, e.venue, e.banner_image, e.payment_type, e.event_fee, e.available_seats, e.max_capacity, e.registration_deadline, " +
+        "COALESCE(AVG(er.rating), 0) AS avg_rating, COUNT(DISTINCT er.review_id) AS reviews_count " +
+        "FROM events e " +
+        "LEFT JOIN event_reviews er ON e.event_id = er.event_id " +
+        "WHERE 1=1 "
     );
 
     if(searchParam != null && !searchParam.trim().isEmpty()){
-        sql.append("AND (event_name LIKE ? OR subtitle LIKE ? OR description LIKE ? OR venue LIKE ? OR category LIKE ?) ");
+        sql.append("AND (e.event_name LIKE ? OR e.subtitle LIKE ? OR e.description LIKE ? OR e.venue LIKE ? OR e.category LIKE ?) ");
     }
     if(categoryParam != null && !categoryParam.trim().isEmpty()){
-        sql.append("AND category = ? ");
+        sql.append("AND e.category = ? ");
     }
 
-    sql.append("ORDER BY (CASE WHEN event_date >= CURDATE() THEN 0 ELSE 1 END), event_date ASC LIMIT 16");
+    sql.append("GROUP BY e.event_id ORDER BY (CASE WHEN e.event_date >= CURDATE() THEN 0 ELSE 1 END), e.event_date ASC LIMIT 16");
 
     ps = conn.prepareStatement(sql.toString());
 
@@ -196,6 +199,8 @@ try {
                 String ePayType = rs.getString("payment_type");
                 double eFee = rs.getDouble("event_fee");
                 int seatsLeft = rs.getInt("available_seats");
+                double eRating = rs.getDouble("avg_rating");
+                int eReviewCount = rs.getInt("reviews_count");
 
                 boolean isPast = eDate != null && eDate.before(today);
                 boolean isDeadlinePast = regDeadline != null && regDeadline.before(today);
@@ -216,6 +221,11 @@ try {
                 <div class="event-card-body">
                     <div class="event-meta-top">
                         <span class="badge-cat"><%= SecurityUtil.escapeHtml(eCat != null ? eCat : "General") %></span>
+                        <% if (eReviewCount > 0) { %>
+                            <span class="badge-star-rating" style="background:rgba(245,158,11,0.15); color:#fbbf24; font-size:11px; font-weight:700; padding:3px 8px; border-radius:12px; border:1px solid rgba(245,158,11,0.35);">
+                                ★ <%= String.format("%.1f", eRating) %> (<%= eReviewCount %>)
+                            </span>
+                        <% } %>
                         <% if("Paid".equalsIgnoreCase(ePayType)) { %>
                             <span class="badge-fee paid">₹<%= String.format("%.2f", eFee) %></span>
                         <% } else { %>

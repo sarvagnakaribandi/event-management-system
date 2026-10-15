@@ -102,6 +102,40 @@ INSERT INTO `event_requests` VALUES (1,1,1,'friend birthday','2026-08-15','22:00
 UNLOCK TABLES;
 
 --
+-- Table structure for table `event_reviews`
+--
+
+DROP TABLE IF EXISTS `event_reviews`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `event_reviews` (
+  `review_id` int(11) NOT NULL AUTO_INCREMENT,
+  `event_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `registration_id` int(11) DEFAULT NULL,
+  `rating` int(11) NOT NULL CHECK (`rating` >= 1 and `rating` <= 5),
+  `review_title` varchar(150) DEFAULT NULL,
+  `review_text` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`review_id`),
+  UNIQUE KEY `uniq_user_event_review` (`user_id`,`event_id`),
+  KEY `event_id` (`event_id`),
+  CONSTRAINT `event_reviews_ibfk_1` FOREIGN KEY (`event_id`) REFERENCES `events` (`event_id`) ON DELETE CASCADE,
+  CONSTRAINT `event_reviews_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `event_reviews`
+--
+
+LOCK TABLES `event_reviews` WRITE;
+/*!40000 ALTER TABLE `event_reviews` DISABLE KEYS */;
+/*!40000 ALTER TABLE `event_reviews` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `event_types`
 --
 
@@ -177,7 +211,7 @@ CREATE TABLE `events` (
 
 LOCK TABLES `events` WRITE;
 /*!40000 ALTER TABLE `events` DISABLE KEYS */;
-INSERT INTO `events` VALUES (4,'T-fest','houise','Gaming','2026-10-01','2026-10-24','2026-10-25','09:00:00','sasi,tadepalligudem','Offline','single','b.tech','no cheating','1500 cash prize with certificate','1000 cash prize with certificate','500 cash prize with certificate','Yes','jhon','9123456732','sarvagna.karibandi24@sasi.ac.in','','have fun','2026-08-09 04:57:28',5,0.00,'Paid','','',100,100),(8,'hackthon','24hr Hackathon','Hackathon','2026-08-09','2026-08-11','2026-08-13','09:00:00','sasi,tadepalligudem','Online','1-4 mebers','b.tech','no cheating','1500 cash prize with certificate','1000 cash prize with certificate','500 cash prize with certificate','Yes','jhon','9123456732','sarvagna.karibandi24@sasi.ac.in','banner_398c6992-cdf2-4b8c-a896-be44a5ba1557.jpg','have fun','2026-08-09 09:15:09',3,300.00,'Paid','sarvagna.karibandi24@sasi.ac.in','qr_a8ff63da-d089-43f9-b898-3e96c1dda81b.png',100,100),(10,'LUDO','KING','Gaming','2026-10-01','2026-10-27','2026-10-28','10:30:00','vinukonda','Online','1-4 mebers','Open to all college students.\r\nValid college ID is required.\r\nPrior registration is required.','Each game will have 4 players.\r\nFollow standard Ludo rules.\r\nNo cheating or unfair play.\r\nBe on time for your match.\r\nCoordinator\'s decision is final.','1000','500','250','Yes','siya','6300324367','abcd@gmail.com','banner_60900dc0-22d9-477b-ab56-2bedd25f2501.jpg','Ludo Gaming is a fun and competitive game where players compete using strategy and luck. Winners will advance to the next round, and the final winner will be declared as the champion.','2026-08-10 08:03:32',3,0.00,'Free',NULL,NULL,100,100),(11,'CHASE THE PUZZLE','puzzle','Technical','2026-10-05','2026-11-10','2026-11-12','11:00:00','NEC ,Narasaraopet','Online','1','Open to all college students.\r\nValid college ID is required.\r\nPrior registration is required.','Participants must solve the given puzzles within the time limit.\r\nNo mobile phones or external help.\r\nNo cheating or unfair practices.\r\nFollow the instructions given by the coordinator.\r\nCoordinator\'s decision is final.','500','250','100','Yes','siya','6300324367','abcd@gmail.com','banner_e7a5e7b8-4317-412f-aa38-b6e96122dd33.jpg','Puzzle Challenge is a fun and exciting event that tests participants\' logic, thinking, problem-solving, and observation skills. Participants must solve different puzzles within the given time. The participant with the best performance will be declared the winner.','2026-08-10 08:21:28',3,200.00,'Paid','siya@upi','qr_87394757-57bf-4e8a-84dd-3e2e0e9a7366.png',100,100),(12,'Voice Vibes','singing','Cultural','2026-10-05','2026-10-29','2026-10-30','09:00:00','sasi,tadepalligudem','Offline','single','Open to all college students.\r\nValid college ID is required.\r\nPrior registration is required.','Participants must sing a song within the given time limit.\r\nParticipants can choose their own song.\r\nNo inappropriate or offensive songs are allowed.\r\nFollow the instructions given by the coordinator.\r\nCoordinator\'s decision is final.','1500','1000','500','Yes','ram','9123456732','ram123@gmail.com','banner_e0f29083-2e7b-42c5-a6f7-85fcc96409d8.jpg','Singing Competition is a fun and exciting event that gives participants a chance to showcase their singing talent, confidence, and creativity. Participants will perform their chosen songs within the given time. The participant with the best performance will be declared the winner.','2026-08-10 08:28:04',3,0.00,'Free',NULL,NULL,100,100),(13,'Dance Carnival','dancing','Cultural','2026-10-08','2026-11-14','2026-11-15','20:00:00','NEC ,Narasaraopet','Online','group','Open to all college students.\r\nValid college ID is required.\r\nPrior registration is required.','Participants must perform within the given time limit.\r\nParticipants can choose their own dance style and music.\r\nNo inappropriate or offensive performances are allowed.\r\nFollow the instructions given by the coordinator.\r\nCoordinator\'s decision is final.','2000','1500','1000','Yes','chetana','8765438976','chetana58@gmail.com','banner_b7b789de-e27e-484e-b622-f4c5777a6772.jpg','Dance Competition is a fun and exciting event that gives participants a chance to showcase their dance skills, creativity, energy, and confidence. Participants will perform their chosen dance within the given time. The participant with the best performance will be declared the winner.','2026-08-10 08:37:24',4,250.00,'Paid','chetana58@upi','qr_a47e4878-b875-46a6-adbb-4748df87892d.png',100,100);
+INSERT INTO `events` VALUES (4,'T-fest','houise','Gaming','2026-10-01','2026-10-24','2026-10-25','09:00:00','sasi,tadepalligudem','Offline','single','b.tech','no cheating','1500 cash prize with certificate','1000 cash prize with certificate','500 cash prize with certificate','Yes','jhon','9123456732','sarvagna.karibandi24@sasi.ac.in','','have fun','2026-08-09 04:57:28',5,0.00,'Paid','','',100,99),(8,'hackthon','24hr Hackathon','Hackathon','2026-08-09','2026-08-11','2026-08-13','09:00:00','sasi,tadepalligudem','Online','1-4 mebers','b.tech','no cheating','1500 cash prize with certificate','1000 cash prize with certificate','500 cash prize with certificate','Yes','jhon','9123456732','sarvagna.karibandi24@sasi.ac.in','banner_398c6992-cdf2-4b8c-a896-be44a5ba1557.jpg','have fun','2026-08-09 09:15:09',3,300.00,'Paid','sarvagna.karibandi24@sasi.ac.in','qr_a8ff63da-d089-43f9-b898-3e96c1dda81b.png',100,100),(10,'LUDO','KING','Gaming','2026-10-01','2026-10-27','2026-10-28','10:30:00','vinukonda','Online','1-4 mebers','Open to all college students.\r\nValid college ID is required.\r\nPrior registration is required.','Each game will have 4 players.\r\nFollow standard Ludo rules.\r\nNo cheating or unfair play.\r\nBe on time for your match.\r\nCoordinator\'s decision is final.','1000','500','250','Yes','siya','6300324367','abcd@gmail.com','banner_60900dc0-22d9-477b-ab56-2bedd25f2501.jpg','Ludo Gaming is a fun and competitive game where players compete using strategy and luck. Winners will advance to the next round, and the final winner will be declared as the champion.','2026-08-10 08:03:32',3,0.00,'Free',NULL,NULL,100,100),(11,'CHASE THE PUZZLE','puzzle','Technical','2026-10-05','2026-11-10','2026-11-12','11:00:00','NEC ,Narasaraopet','Online','1','Open to all college students.\r\nValid college ID is required.\r\nPrior registration is required.','Participants must solve the given puzzles within the time limit.\r\nNo mobile phones or external help.\r\nNo cheating or unfair practices.\r\nFollow the instructions given by the coordinator.\r\nCoordinator\'s decision is final.','500','250','100','Yes','siya','6300324367','abcd@gmail.com','banner_e7a5e7b8-4317-412f-aa38-b6e96122dd33.jpg','Puzzle Challenge is a fun and exciting event that tests participants\' logic, thinking, problem-solving, and observation skills. Participants must solve different puzzles within the given time. The participant with the best performance will be declared the winner.','2026-08-10 08:21:28',3,200.00,'Paid','siya@upi','qr_87394757-57bf-4e8a-84dd-3e2e0e9a7366.png',100,100),(12,'Voice Vibes','singing','Cultural','2026-10-05','2026-10-29','2026-10-30','09:00:00','sasi,tadepalligudem','Offline','single','Open to all college students.\r\nValid college ID is required.\r\nPrior registration is required.','Participants must sing a song within the given time limit.\r\nParticipants can choose their own song.\r\nNo inappropriate or offensive songs are allowed.\r\nFollow the instructions given by the coordinator.\r\nCoordinator\'s decision is final.','1500','1000','500','Yes','ram','9123456732','ram123@gmail.com','banner_e0f29083-2e7b-42c5-a6f7-85fcc96409d8.jpg','Singing Competition is a fun and exciting event that gives participants a chance to showcase their singing talent, confidence, and creativity. Participants will perform their chosen songs within the given time. The participant with the best performance will be declared the winner.','2026-08-10 08:28:04',3,0.00,'Free',NULL,NULL,100,100),(13,'Dance Carnival','dancing','Cultural','2026-10-08','2026-11-14','2026-11-15','20:00:00','NEC ,Narasaraopet','Online','group','Open to all college students.\r\nValid college ID is required.\r\nPrior registration is required.','Participants must perform within the given time limit.\r\nParticipants can choose their own dance style and music.\r\nNo inappropriate or offensive performances are allowed.\r\nFollow the instructions given by the coordinator.\r\nCoordinator\'s decision is final.','2000','1500','1000','Yes','chetana','8765438976','chetana58@gmail.com','banner_b7b789de-e27e-484e-b622-f4c5777a6772.jpg','Dance Competition is a fun and exciting event that gives participants a chance to showcase their dance skills, creativity, energy, and confidence. Participants will perform their chosen dance within the given time. The participant with the best performance will be declared the winner.','2026-08-10 08:37:24',4,250.00,'Paid','chetana58@upi','qr_a47e4878-b875-46a6-adbb-4748df87892d.png',100,100);
 /*!40000 ALTER TABLE `events` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -201,7 +235,7 @@ CREATE TABLE `notifications` (
   KEY `idx_user_read` (`user_id`,`is_read`),
   KEY `idx_user_created` (`user_id`,`created_at`),
   CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -210,7 +244,7 @@ CREATE TABLE `notifications` (
 
 LOCK TABLES `notifications` WRITE;
 /*!40000 ALTER TABLE `notifications` DISABLE KEYS */;
-INSERT INTO `notifications` VALUES (3,8,'🎟️ Registration Confirmed!','Your booking for \'Voice Vibes\' is confirmed. Access your ticket from My Registrations.','booking','myRegistrations.jsp',1,'2026-10-15 07:21:49'),(4,3,'🎟️ New Registration','karibandi sarvagna registered for your event \'Voice Vibes\'.','booking','viewParticipants.jsp?event_id=12',0,'2026-10-15 07:21:49'),(5,8,'🎟️ Booking Cancelled','Your registration for \'Voice Vibes\' was cancelled. The reserved seat has been released.','booking','browseEvents.jsp',0,'2026-10-15 07:22:31'),(6,3,'ℹ️ Registration Cancelled','A participant cancelled their registration for \'Voice Vibes\'. Seat capacity restored.','booking','viewParticipants.jsp?id=12',0,'2026-10-15 07:22:31');
+INSERT INTO `notifications` VALUES (3,8,'🎟️ Registration Confirmed!','Your booking for \'Voice Vibes\' is confirmed. Access your ticket from My Registrations.','booking','myRegistrations.jsp',1,'2026-10-15 07:21:49'),(4,3,'🎟️ New Registration','karibandi sarvagna registered for your event \'Voice Vibes\'.','booking','viewParticipants.jsp?event_id=12',0,'2026-10-15 07:21:49'),(5,8,'🎟️ Booking Cancelled','Your registration for \'Voice Vibes\' was cancelled. The reserved seat has been released.','booking','browseEvents.jsp',0,'2026-10-15 07:22:31'),(6,3,'ℹ️ Registration Cancelled','A participant cancelled their registration for \'Voice Vibes\'. Seat capacity restored.','booking','viewParticipants.jsp?id=12',0,'2026-10-15 07:22:31'),(7,2,'🎟️ Checked In at Gate!','Your admission to \'LUDO\' was verified at the entrance gate. Enjoy the event!','booking','viewTicket.jsp?id=6',0,'2026-10-15 09:40:11'),(8,7,'🎟️ Registration Confirmed!','Your booking for \'T-fest\' is confirmed. Access your ticket from My Registrations.','booking','myRegistrations.jsp',0,'2026-10-15 09:57:31'),(9,5,'🎟️ New Registration','karibandi sarvagna registered for your event \'T-fest\'.','booking','viewParticipants.jsp?event_id=4',0,'2026-10-15 09:57:31');
 /*!40000 ALTER TABLE `notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -370,7 +404,7 @@ CREATE TABLE `payments` (
   PRIMARY KEY (`payment_id`),
   KEY `registration_id` (`registration_id`),
   CONSTRAINT `payments_ibfk_1` FOREIGN KEY (`registration_id`) REFERENCES `registrations` (`registration_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -379,7 +413,7 @@ CREATE TABLE `payments` (
 
 LOCK TABLES `payments` WRITE;
 /*!40000 ALTER TABLE `payments` DISABLE KEYS */;
-INSERT INTO `payments` VALUES (1,4,300.00,'Rejected','2026-10-12 15:04:02','UPI','UTR-HIST-004'),(2,6,0.00,'Completed','2026-10-12 15:04:02','Free','FREE-HIST-006'),(3,7,0.00,'Pending','2026-10-12 15:04:02','UPI','UTR-HIST-007');
+INSERT INTO `payments` VALUES (1,4,300.00,'Rejected','2026-10-12 15:04:02','UPI','UTR-HIST-004'),(2,6,0.00,'Completed','2026-10-12 15:04:02','Free','FREE-HIST-006'),(3,7,0.00,'Pending','2026-10-12 15:04:02','UPI','UTR-HIST-007'),(8,12,0.00,'Not Required','2026-10-15 09:57:31','Free','FREE-044E8E55');
 /*!40000 ALTER TABLE `payments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -490,7 +524,7 @@ CREATE TABLE `registrations` (
   KEY `event_id` (`event_id`),
   CONSTRAINT `registrations_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `registrations_ibfk_2` FOREIGN KEY (`event_id`) REFERENCES `events` (`event_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -499,7 +533,7 @@ CREATE TABLE `registrations` (
 
 LOCK TABLES `registrations` WRITE;
 /*!40000 ALTER TABLE `registrations` DISABLE KEYS */;
-INSERT INTO `registrations` VALUES (4,3,8,'2026-08-09 10:01:47','Srividya muthukuri','srividya.muthukuri24@sasi.ac.in','6300324367','Female','2006-07-05','guntur','AP','India','','quarts',2,'','Rejected',NULL,'UPI','UTR-HIST-004','TKT-0004-BEEDAF','Not Checked In',NULL,NULL,'CERT-0004-A6CAB5'),(6,2,10,'2026-08-10 08:42:54','Ramya','qwe@gmail.com','1234567891','Female','2006-03-23','guntur','AP','India','9533396431','abcgame',2,'','Not Required',NULL,'Free','FREE-HIST-006','TKT-0006-F33110','Not Checked In',NULL,NULL,'CERT-0006-543F39'),(7,1,4,'2026-08-12 03:38:38','sarvagna karibandi','sarvagna.karibandi24@sasi.ac.in','6300324367','Female','2007-07-06','rjy','AP','India','56789012312','tackles',1,'no','Pending',NULL,'UPI','UTR-HIST-007','TKT-0007-01041A','Not Checked In',NULL,NULL,'CERT-0007-9E3080');
+INSERT INTO `registrations` VALUES (4,3,8,'2026-08-09 10:01:47','Srividya muthukuri','srividya.muthukuri24@sasi.ac.in','6300324367','Female','2006-07-05','guntur','AP','India','','quarts',2,'','Rejected',NULL,'UPI','UTR-HIST-004','TKT-0004-BEEDAF','Not Checked In',NULL,NULL,'CERT-0004-A6CAB5'),(6,2,10,'2026-08-10 08:42:54','Ramya','qwe@gmail.com','1234567891','Female','2006-03-23','guntur','AP','India','9533396431','abcgame',2,'','Not Required',NULL,'Free','FREE-HIST-006','TKT-0006-F33110','Checked In','2026-10-15 09:40:11',6,'CERT-0006-543F39'),(7,1,4,'2026-08-12 03:38:38','sarvagna karibandi','sarvagna.karibandi24@sasi.ac.in','6300324367','Female','2007-07-06','rjy','AP','India','56789012312','tackles',1,'no','Pending',NULL,'UPI','UTR-HIST-007','TKT-0007-01041A','Not Checked In',NULL,NULL,'CERT-0007-9E3080'),(12,7,4,'2026-10-15 09:57:31','karibandi sarvagna','sarvagna.karibandi24@sasi.ac.in','9533396431','Female','2007-07-09','gutala','andharapradesh','India','9876543234','club',1,'','Not Required',NULL,'Free','FREE-044E8E55','TKT-E6A828A0','Not Checked In',NULL,NULL,'CERT-7B849CE5');
 /*!40000 ALTER TABLE `registrations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -541,4 +575,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-15 15:03:18
+-- Dump completed on 2026-10-15 15:46:13

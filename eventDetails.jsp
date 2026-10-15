@@ -26,6 +26,8 @@ PreparedStatement ps = null;
 ResultSet rs = null;
 PreparedStatement regCheckPs = null;
 ResultSet regCheckRs = null;
+PreparedStatement psReviewsList = null;
+ResultSet rsReviewsList = null;
 
 try{
     conn = DBConnection.getConnection();
@@ -160,7 +162,7 @@ try{
         }
 
         // List of recent reviews
-        PreparedStatement psReviewsList = conn.prepareStatement(
+        psReviewsList = conn.prepareStatement(
             "SELECT er.*, u.full_name AS reviewer_name, r.check_in_status " +
             "FROM event_reviews er " +
             "JOIN users u ON er.user_id = u.id " +
@@ -169,7 +171,7 @@ try{
             "ORDER BY er.created_at DESC LIMIT 10"
         );
         psReviewsList.setInt(1, eventId);
-        ResultSet rsReviewsList = psReviewsList.executeQuery();
+        rsReviewsList = psReviewsList.executeQuery();
 %>
 
 <!DOCTYPE html>
