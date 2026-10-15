@@ -15,7 +15,8 @@ String idParam = request.getParameter("id");
 boolean success = false;
 
 if ("all".equalsIgnoreCase(action)) {
-    success = NotificationDAO.markAllAsRead(userId);
+    NotificationDAO.markAllAsRead(userId);
+    success = true;
 } else if ("delete".equalsIgnoreCase(action) && idParam != null) {
     try {
         int notifId = Integer.parseInt(idParam);

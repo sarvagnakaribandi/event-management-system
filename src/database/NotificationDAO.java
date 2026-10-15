@@ -159,7 +159,8 @@ public class NotificationDAO {
             String sql = "UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0";
             ps = conn.prepareStatement(sql);
             ps.setInt(1, userId);
-            return ps.executeUpdate() > 0;
+            ps.executeUpdate();
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
