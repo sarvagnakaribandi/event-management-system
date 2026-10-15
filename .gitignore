@@ -1,0 +1,2 @@
+*.war
+tests/temp_*.txt
