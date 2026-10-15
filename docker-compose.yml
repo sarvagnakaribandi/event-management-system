@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # MySQL Database Service with automatic schema seeding
+  db:
+    image: mysql:8.0
+    container_name: eventsphere-mysql
+    restart: always
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+      MYSQL_DATABASE: eventsphere
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./schema.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql-data:/var/lib/mysql
+
+  # EventSphere Web Application (Tomcat 10)
+  web:
+    build: .
+    container_name: eventsphere-web
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "8081:8080"
+
+  # Cloudflare Tunnel Service (Provides automatic free public HTTPS URL)
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: eventsphere-tunnel
+    restart: always
+    command: tunnel --no-autoupdate --url http://web:8080
+    depends_on:
+      - web
+
+volumes:
+  mysql-data:

@@ -1,7 +1,7 @@
 @echo off
 title EventSphere WAR Packager
 echo ========================================================
-echo        Packaging EventSphere into WAR Archive
+echo        Packaging Standalone EventSphere WAR
 echo ========================================================
 echo.
 
@@ -17,18 +17,15 @@ if not exist "%JAR_EXE%" (
 )
 
 cd /d "C:\apache-tomcat-10.1.57\webapps\Eventsphere"
-echo Building Eventsphere.war ...
+echo Building standalone Eventsphere.war with bundled dependencies...
 "%JAR_EXE%" -cvf Eventsphere.war *.jsp css js images WEB-INF schema.sql
 
 if %errorlevel% equ 0 (
     echo.
     echo ========================================================
-    echo [SUCCESS] Eventsphere.war created successfully in:
-    echo C:\apache-tomcat-10.1.57\webapps\Eventsphere\Eventsphere.war
+    echo [SUCCESS] Eventsphere.war created successfully!
+    echo Location: C:\apache-tomcat-10.1.57\webapps\Eventsphere\Eventsphere.war
     echo ========================================================
-    echo.
-    echo To deploy to any Tomcat installation:
-    echo Simply copy Eventsphere.war into the target tomcat/webapps/ directory!
 ) else (
     echo [ERROR] Failed to package WAR.
 )
