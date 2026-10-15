@@ -105,6 +105,71 @@ try{
                 alreadyRegistered = true;
             }
         }
+
+        // Phase 10: Reviews & Ratings Aggregations
+        double avgRating = 0.0;
+        int totalReviews = 0;
+        int[] starCounts = new int[6];
+
+        PreparedStatement psRating = conn.prepareStatement(
+            "SELECT AVG(rating) as avg_score, COUNT(*) as total_count FROM event_reviews WHERE event_id = ?"
+        );
+        psRating.setInt(1, eventId);
+        ResultSet rsRating = psRating.executeQuery();
+        if (rsRating.next()) {
+            avgRating = rsRating.getDouble("avg_score");
+            totalReviews = rsRating.getInt("total_count");
+        }
+        rsRating.close();
+        psRating.close();
+
+        PreparedStatement psStarBreakdown = conn.prepareStatement(
+            "SELECT rating, COUNT(*) as cnt FROM event_reviews WHERE event_id = ? GROUP BY rating"
+        );
+        psStarBreakdown.setInt(1, eventId);
+        ResultSet rsBreakdown = psStarBreakdown.executeQuery();
+        while (rsBreakdown.next()) {
+            int r = rsBreakdown.getInt("rating");
+            if (r >= 1 && r <= 5) {
+                starCounts[r] = rsBreakdown.getInt("cnt");
+            }
+        }
+        rsBreakdown.close();
+        psStarBreakdown.close();
+
+        // User's own review if logged in
+        int myRating = 5;
+        String myReviewTitle = "";
+        String myReviewText = "";
+        boolean hasReviewed = false;
+        if (currentUserId != null) {
+            PreparedStatement psMyReview = conn.prepareStatement(
+                "SELECT * FROM event_reviews WHERE event_id = ? AND user_id = ?"
+            );
+            psMyReview.setInt(1, eventId);
+            psMyReview.setInt(2, currentUserId);
+            ResultSet rsMyReview = psMyReview.executeQuery();
+            if (rsMyReview.next()) {
+                hasReviewed = true;
+                myRating = rsMyReview.getInt("rating");
+                myReviewTitle = rsMyReview.getString("review_title");
+                myReviewText = rsMyReview.getString("review_text");
+            }
+            rsMyReview.close();
+            psMyReview.close();
+        }
+
+        // List of recent reviews
+        PreparedStatement psReviewsList = conn.prepareStatement(
+            "SELECT er.*, u.full_name AS reviewer_name, r.check_in_status " +
+            "FROM event_reviews er " +
+            "JOIN users u ON er.user_id = u.id " +
+            "LEFT JOIN registrations r ON er.registration_id = r.registration_id " +
+            "WHERE er.event_id = ? " +
+            "ORDER BY er.created_at DESC LIMIT 10"
+        );
+        psReviewsList.setInt(1, eventId);
+        ResultSet rsReviewsList = psReviewsList.executeQuery();
 %>
 
 <!DOCTYPE html>
@@ -162,6 +227,221 @@ try{
             text-decoration: none;
             font-weight: 600;
         }
+
+        .rating-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #fbbf24;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        /* Reviews Section */
+        .reviews-container {
+            background: #10172a;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 35px;
+            margin-top: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .reviews-header-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .reviews-header-line h2 {
+            font-size: 24px;
+            color: #fff;
+            margin: 0;
+        }
+
+        .reviews-summary {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 35px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 30px;
+        }
+
+        .rating-score-box {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .score-num {
+            font-size: 46px;
+            font-weight: 800;
+            color: #fbbf24;
+            line-height: 1;
+        }
+
+        .stars-row {
+            color: #fbbf24;
+            font-size: 18px;
+            margin: 8px 0;
+            letter-spacing: 2px;
+        }
+
+        .breakdown-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .progress-track {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Review Form */
+        .review-form-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 35px;
+        }
+
+        .star-rating-select {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0 16px 0;
+            font-size: 26px;
+            cursor: pointer;
+        }
+
+        .star-rating-select .star-item {
+            color: #475569;
+            transition: color 0.15s, transform 0.15s;
+        }
+
+        .star-rating-select .star-item:hover,
+        .star-rating-select .star-item.active {
+            color: #fbbf24;
+            transform: scale(1.15);
+        }
+
+        .review-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 14px;
+            margin-bottom: 12px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .review-input:focus {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .btn-submit-review {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: #fff;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-submit-review:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Reviews List */
+        .review-item {
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .review-item:last-child {
+            border-bottom: none;
+        }
+
+        .review-user-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .reviewer-name {
+            font-weight: 600;
+            color: #fff;
+            font-size: 15px;
+        }
+
+        .verified-attendee-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34d399;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-left: 8px;
+        }
+
+        .review-date {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .review-text-body {
+            color: #cbd5e1;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-top: 6px;
+        }
+
+        @media (max-width: 768px) {
+            .reviews-summary { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -174,14 +454,40 @@ try{
 <div class="container">
     <a href="javascript:history.back()" style="display:inline-block; margin-bottom:20px; color:#cbb8ff; text-decoration:none;">← Go Back</a>
 
+    <!-- Feedback Alerts -->
+    <% 
+    String revMsg = request.getParameter("msg");
+    String revErr = request.getParameter("error");
+    if ("review_success".equalsIgnoreCase(revMsg)) { 
+    %>
+        <div style="background:rgba(34,197,94,0.15); border:1px solid #22c55e; color:#4ade80; padding:14px 20px; border-radius:12px; margin-bottom:25px; text-align:center; font-weight:500;">
+            ✅ Thank you! Your verified attendee review has been published successfully.
+        </div>
+    <% } else if ("not_registered_attendee".equalsIgnoreCase(revErr)) { %>
+        <div style="background:rgba(239,68,68,0.15); border:1px solid #ef4444; color:#f87171; padding:14px 20px; border-radius:12px; margin-bottom:25px; text-align:center; font-weight:500;">
+            ⚠️ Reviews are exclusively open to verified attendees who registered for this event.
+        </div>
+    <% } %>
+
     <!-- Event Header -->
     <div class="event-header">
-        <span class="category"><%= SecurityUtil.escapeHtml(category != null ? category : "General") %></span>
+        <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+            <span class="category"><%= SecurityUtil.escapeHtml(category != null ? category : "General") %></span>
+            <% if (totalReviews > 0) { %>
+                <a href="#reviews" class="rating-badge" style="text-decoration:none;">
+                    ★ <%= String.format("%.1f", avgRating) %> (<%= totalReviews %> review<%= totalReviews > 1 ? "s" : "" %>)
+                </a>
+            <% } else { %>
+                <span class="rating-badge" style="background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.15); color:#94a3b8;">
+                    ★ New Event
+                </span>
+            <% } %>
+        </div>
         <h1><%= SecurityUtil.escapeHtml(eventName) %></h1>
         <h3><%= subtitle != null ? SecurityUtil.escapeHtml(subtitle) : "" %></h3>
 
         <!-- Organizer Profile Card -->
-        <div style="margin-top: 15px; display:flex; align-items:center; gap:15px; flex-wrap:wrap;">
+        <div style="margin-top: 15px; display:flex; align-items:center; gap:15px; flex-wrap:wrap; justify-content:center;">
             <span style="color:#cbd5e1;">Organized by: <strong><%= SecurityUtil.escapeHtml(organizerName != null ? organizerName : "EventSphere Organizer") %></strong></span>
             <% if(isVerifiedOrganizer) { %>
                 <span class="verified-badge">✔ Verified Organizer</span>
