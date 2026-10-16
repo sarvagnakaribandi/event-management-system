@@ -61,13 +61,7 @@ ResultSet rs = null;
 
 try {
 
-    Class.forName("com.mysql.cj.jdbc.Driver");
-
-    conn = DriverManager.getConnection(
-        "jdbc:mysql://localhost:3306/eventsphere",
-        "root",
-        ""
-    );
+    conn = database.DBConnection.getConnection();
 
 
     /*

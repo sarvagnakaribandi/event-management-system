@@ -1,5 +1,6 @@
 package database;
 
+import java.net.URI;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -7,16 +8,58 @@ import java.sql.Statement;
 
 public class DBConnection {
 
-    private static final String URL = "jdbc:mysql://localhost:3306/eventsphere";
-    private static final String USER = "root";
-    private static final String PASSWORD = "";
-
     public static Connection getConnection() {
         Connection conn = null;
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            conn = DriverManager.getConnection(URL, USER, PASSWORD);
+
+            // 1. Check for full cloud database connection URL (Render / Railway / Heroku format)
+            String envUrl = System.getenv("MYSQL_URL");
+            if (envUrl == null || envUrl.isBlank()) {
+                envUrl = System.getenv("DATABASE_URL");
+            }
+
+            if (envUrl != null && !envUrl.isBlank()) {
+                try {
+                    String cleanUrl = envUrl.replace("jdbc:", "");
+                    URI uri = new URI(cleanUrl);
+                    String host = uri.getHost();
+                    int port = uri.getPort() == -1 ? 3306 : uri.getPort();
+                    String dbName = uri.getPath() != null && uri.getPath().length() > 1 
+                                    ? uri.getPath().substring(1) 
+                                    : "eventsphere";
+                    String user = "";
+                    String pass = "";
+                    if (uri.getUserInfo() != null) {
+                        String[] parts = uri.getUserInfo().split(":", 2);
+                        user = parts[0];
+                        if (parts.length > 1) pass = parts[1];
+                    }
+                    String jdbcUrl = "jdbc:mysql://" + host + ":" + port + "/" + dbName
+                                   + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+                    conn = DriverManager.getConnection(jdbcUrl, user, pass);
+                } catch (Exception parseEx) {
+                    // Fallback to direct JDBC string if URI parsing is skipped
+                    String jdbcUrl = envUrl.startsWith("jdbc:") ? envUrl : "jdbc:" + envUrl;
+                    if (!jdbcUrl.contains("?")) {
+                        jdbcUrl += "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+                    }
+                    conn = DriverManager.getConnection(jdbcUrl);
+                }
+            } else {
+                // 2. Individual environment variables with safe localhost defaults for local development
+                String host = System.getenv().getOrDefault("DB_HOST", "localhost");
+                String port = System.getenv().getOrDefault("DB_PORT", "3306");
+                String dbName = System.getenv().getOrDefault("DB_NAME", "eventsphere");
+                String user = System.getenv().getOrDefault("DB_USER", "root");
+                String pass = System.getenv().getOrDefault("DB_PASSWORD", "");
+
+                String jdbcUrl = "jdbc:mysql://" + host + ":" + port + "/" + dbName
+                               + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+                conn = DriverManager.getConnection(jdbcUrl, user, pass);
+            }
         } catch (Exception e) {
+            System.err.println("DBConnection error: " + e.getMessage());
             e.printStackTrace();
         }
         return conn;
