@@ -1,1 +1,5 @@
 tests/temp_*.txt
+.idea/
+*.iml
+out/
+*.class.bak

@@ -22,9 +22,12 @@ echo Building standalone Eventsphere.war with bundled dependencies...
 
 if %errorlevel% equ 0 (
     echo.
+    echo Synchronizing Eventsphere.war with project repository...
+    copy /Y "C:\apache-tomcat-10.1.57\webapps\Eventsphere\Eventsphere.war" "C:\Users\SARVAGNA\IdeaProjects\event-management-system\Eventsphere.war" >nul
     echo ========================================================
-    echo [SUCCESS] Eventsphere.war created successfully!
-    echo Location: C:\apache-tomcat-10.1.57\webapps\Eventsphere\Eventsphere.war
+    echo [SUCCESS] Eventsphere.war created and synchronized!
+    echo Tomcat:     C:\apache-tomcat-10.1.57\webapps\Eventsphere\Eventsphere.war
+    echo Repository: C:\Users\SARVAGNA\IdeaProjects\event-management-system\Eventsphere.war
     echo ========================================================
 ) else (
     echo [ERROR] Failed to package WAR.

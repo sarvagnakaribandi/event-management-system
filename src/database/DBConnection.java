@@ -64,7 +64,6 @@ public class DBConnection {
         }
         return conn;
     }
-
     public static void close(AutoCloseable... closeables) {
         if (closeables == null) return;
         for (AutoCloseable c : closeables) {
