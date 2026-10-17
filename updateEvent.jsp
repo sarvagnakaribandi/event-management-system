@@ -606,4 +606,40 @@ try{
 
 
     /* =================================================
-      
+       QR IMAGE
+       ================================================= */
+
+    if(qrImage == null || qrImage.trim().equals("")){
+        ps.setNull(25, Types.VARCHAR);
+    } else {
+        ps.setString(25, qrImage.trim());
+    }
+
+
+    /* =================================================
+       WHERE CONDITIONS
+       ================================================= */
+
+    ps.setInt(26, eventId);
+    ps.setInt(27, organizerId);
+
+
+    /* =================================================
+       EXECUTE UPDATE
+       ================================================= */
+
+    int rows = ps.executeUpdate();
+
+    if(rows > 0){
+        response.sendRedirect("manageEvents.jsp?status=updated");
+    } else {
+        response.sendRedirect("manageEvents.jsp?status=not_found");
+    }
+
+} catch(Exception e){
+    e.printStackTrace();
+    response.sendRedirect("manageEvents.jsp?status=error&message=" + java.net.URLEncoder.encode(e.getMessage() != null ? e.getMessage() : "Unknown error", "UTF-8"));
+} finally {
+    database.DBConnection.close(conn, ps, null);
+}
+%>

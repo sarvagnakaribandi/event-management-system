@@ -71,6 +71,9 @@ Assert-Step "Guest redirected from organizerDashboard.jsp (HTTP 302)" ($orgDashC
 $adminDashCode = curl.exe -s -o NUL -w "%{http_code}" "$BaseUrl/adminDashboard.jsp"
 Assert-Step "Guest redirected from adminDashboard.jsp (HTTP 302)" ($adminDashCode -eq "302")
 
+$updateEventCode = curl.exe -s -o NUL -w "%{http_code}" "$BaseUrl/updateEvent.jsp"
+Assert-Step "Guest redirected from updateEvent.jsp (HTTP 302)" ($updateEventCode -eq "302")
+
 # Test Public Pages Accessibility
 $indexCode = curl.exe -s -o NUL -w "%{http_code}" "$BaseUrl/index.jsp"
 Assert-Step "Public Landing Page index.jsp accessible (HTTP 200)" ($indexCode -eq "200")
