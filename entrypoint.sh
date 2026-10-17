@@ -20,6 +20,16 @@ else
         fi
         sleep 1
     done
+
+    echo "[EventSphere] Configuring MariaDB permissions for TCP/JDBC..."
+    mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED VIA mysql_native_password USING PASSWORD('');" 2>/dev/null || \
+    mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '';" 2>/dev/null || true
+    mysql -e "CREATE USER IF NOT EXISTS 'root'@'127.0.0.1' IDENTIFIED BY '';" 2>/dev/null || true
+    mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;" 2>/dev/null || true
+    mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1' WITH GRANT OPTION;" 2>/dev/null || true
+    mysql -e "CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '';" 2>/dev/null || true
+    mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;" 2>/dev/null || true
+    mysql -e "FLUSH PRIVILEGES;" 2>/dev/null || true
     
     echo "[EventSphere] Initializing 'eventsphere' database..."
     mysql -e "CREATE DATABASE IF NOT EXISTS eventsphere;"
